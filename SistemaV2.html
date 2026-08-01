@@ -1,0 +1,2639 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>C.O.A – Trade System</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* ===== RESET E BASE ===== */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0B0B0B;
+      --bg-secondary: #141414;
+      --bg-card: #1A1A1A;
+      --bg-hover: #242424;
+      --neon-purple: #7C3AED;
+      --neon-purple-glow: rgba(124, 58, 237, 0.35);
+      --neon-purple-dim: rgba(124, 58, 237, 0.12);
+      --text-primary: #F0F0F0;
+      --text-secondary: #A0A0A0;
+      --text-muted: #666666;
+      --border-color: #2A2A2A;
+      --shadow-glow: 0 0 30px rgba(124, 58, 237, 0.15);
+      --radius: 14px;
+      --radius-sm: 8px;
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --font: 'JetBrains Mono', monospace;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+    ::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #8B5CF6; }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 68px;
+      height: 100vh;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 0 20px;
+      z-index: 100;
+      transition: width var(--transition);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .sidebar.expanded { width: 260px; }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 0 16px;
+      margin-bottom: 32px;
+      cursor: pointer;
+    }
+    .sidebar-logo .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--neon-purple);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 0 20px var(--neon-purple-glow);
+    }
+    .sidebar-logo .logo-text {
+      font-weight: 700;
+      font-size: 18px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .sidebar.expanded .sidebar-logo .logo-text { opacity: 1; }
+    .sidebar-logo .logo-sub {
+      font-size: 10px;
+      color: var(--text-secondary);
+      letter-spacing: 1px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .sidebar.expanded .sidebar-logo .logo-sub { opacity: 1; }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      padding: 0 12px;
+      flex: 1;
+    }
+    .sidebar-nav .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all var(--transition);
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      position: relative;
+    }
+    .sidebar-nav .nav-item i {
+      font-size: 18px;
+      width: 22px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .sidebar-nav .nav-item span {
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .sidebar.expanded .sidebar-nav .nav-item span { opacity: 1; }
+    .sidebar-nav .nav-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+    .sidebar-nav .nav-item.active {
+      background: var(--neon-purple-dim);
+      color: var(--neon-purple);
+      box-shadow: inset 3px 0 0 var(--neon-purple);
+    }
+    .sidebar-nav .nav-item.active::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 24px;
+      background: var(--neon-purple);
+      border-radius: 4px 0 0 4px;
+    }
+
+    .sidebar-toggle {
+      margin-top: auto;
+      padding: 10px 14px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition);
+      background: none;
+      border: none;
+      font-family: var(--font);
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .sidebar-toggle:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+    .sidebar-toggle i {
+      font-size: 18px;
+      width: 22px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .sidebar-toggle span {
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .sidebar.expanded .sidebar-toggle span { opacity: 1; }
+
+    /* ===== MAIN ===== */
+    .main {
+      margin-left: 68px;
+      flex: 1;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 24px 32px 40px;
+      transition: margin-left var(--transition);
+      background: var(--bg-primary);
+      position: relative;
+    }
+    .main.expanded { margin-left: 260px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .topbar-left .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff 40%, var(--neon-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .topbar-left .page-sub {
+      font-size: 13px;
+      color: var(--neon-purple);
+      font-weight: 400;
+      -webkit-text-fill-color: var(--neon-purple);
+      background: none;
+    }
+    .topbar-left .page-sub::before {
+      content: '· ';
+      color: var(--text-muted);
+      -webkit-text-fill-color: var(--text-muted);
+    }
+
+    /* ===== SIDEBAR USER (Jogador / Sair) ===== */
+    .sidebar-user {
+      width: 100%;
+      padding: 0 16px;
+      margin-bottom: 20px;
+      opacity: 0;
+      transition: opacity var(--transition);
+      overflow: hidden;
+    }
+    .sidebar.expanded .sidebar-user { opacity: 1; }
+    .sidebar-user .sidebar-user-name {
+      display: block;
+      font-size: 14px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      margin-bottom: 10px;
+    }
+    .sidebar-user #logoutBtn {
+      width: 100%;
+      justify-content: center;
+      border-radius: 30px;
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar-right .badge {
+      background: var(--neon-purple-dim);
+      color: var(--neon-purple);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+    .topbar-right .badge i { margin-right: 6px; }
+
+    /* ===== PÁGINAS ===== */
+    .page { display: none; animation: fadeSlideIn 0.3s ease; }
+    .page.active { display: block; }
+
+    /* ===== STATS ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 0;
+      transition: all var(--transition);
+    }
+    .stat-card:hover { transform: translateY(-2px); }
+    .stat-card .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .stat-card .stat-value {
+      font-size: 26px;
+      font-weight: 700;
+      margin-top: 4px;
+      background: linear-gradient(135deg, #fff 30%, var(--neon-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-card .stat-detail {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ===== CARDS / PANELS ===== */
+    .panel {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      transition: all var(--transition);
+    }
+    .panel:hover { border-color: rgba(124, 58, 237, 0.2); }
+    .panel-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .panel-title i { color: var(--neon-purple); }
+
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+    .flex-row .flex-grow { flex: 1; min-width: 200px; }
+
+    /* ===== INPUTS ===== */
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap i {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+    .input-wrap input,
+    .input-wrap select,
+    .input-wrap textarea {
+      width: 100%;
+      padding: 14px 16px 14px 48px;
+      background: var(--bg-primary);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 14px;
+      transition: all var(--transition);
+      outline: none;
+    }
+    .input-wrap textarea {
+      padding: 14px 16px;
+      resize: vertical;
+      min-height: 80px;
+    }
+    .input-wrap input:focus,
+    .input-wrap select:focus,
+    .input-wrap textarea:focus {
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 25px var(--neon-purple-glow);
+    }
+    .input-wrap input::placeholder,
+    .input-wrap textarea::placeholder { color: var(--text-muted); font-size: 14px; }
+    .input-wrap select option { background: var(--bg-primary); }
+
+    /* ===== BOTÕES ===== */
+    .btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary {
+      background: var(--neon-purple);
+      color: #fff;
+      box-shadow: 0 0 25px var(--neon-purple-glow);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 40px var(--neon-purple-glow);
+    }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-secondary {
+      background: var(--bg-hover);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+    .btn-secondary:hover {
+      background: var(--border-color);
+      color: var(--text-primary);
+    }
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #F87171;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 12px;
+      border-radius: var(--radius-sm);
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* ===== LISTAS ===== */
+    .item-list {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0;
+      max-height: 200px;
+      overflow-y: auto;
+      background: var(--bg-primary);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      border: 1px solid var(--border-color);
+    }
+    .item-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 4px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+    }
+    .item-list li:last-child { border-bottom: none; }
+
+    /* ===== TOTAL BAR ===== */
+    .total-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 20px 40px;
+      background: var(--bg-secondary);
+      border-radius: 60px;
+      padding: 14px 30px;
+      margin: 16px auto;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-glow);
+      max-width: 700px;
+    }
+    .total-item {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 18px;
+    }
+    .total-item .label { color: var(--text-muted); font-weight: 300; }
+    .total-item .value {
+      font-weight: bold;
+      color: var(--neon-purple);
+      font-size: 22px;
+    }
+    .diff {
+      font-size: 22px;
+      font-weight: 600;
+      color: #f1c40f;
+      padding: 0 12px;
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+    }
+
+    /* ===== SUGESTÕES DROPDOWN ===== */
+    .suggest-wrap { position: relative; margin-top: 12px; }
+    .suggest-btn {
+      width: 100%;
+      padding: 10px 16px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-family: var(--font);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-align: center;
+    }
+    .suggest-btn:hover {
+      background: var(--border-color);
+      color: var(--text-primary);
+    }
+    .suggest-dropdown {
+      display: none;
+      position: absolute;
+      top: 110%;
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 8px 0;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 50;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    }
+    .suggest-dropdown.show { display: block; }
+    .suggest-dropdown .suggest-item {
+      display: block;
+      width: 100%;
+      padding: 8px 16px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font);
+      font-size: 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .suggest-dropdown .suggest-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    /* ===== TABELAS ===== */
+    .table-wrap { overflow-x: auto; }
+    .styled-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+    .styled-table th {
+      background: var(--bg-hover);
+      color: var(--neon-purple);
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+    .styled-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .styled-table tr:last-child td { border-bottom: none; }
+    .styled-table .power { color: #f1c40f; font-weight: 600; }
+    .styled-table .discord-link { color: #7289da; text-decoration: none; }
+    .styled-table .discord-link:hover { text-decoration: underline; }
+
+    .player-actions button {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 4px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition);
+      font-size: 13px;
+      margin-right: 4px;
+      font-family: var(--font);
+    }
+    .player-actions button:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+    .player-actions .del-btn:hover {
+      border-color: #F87171;
+      color: #F87171;
+    }
+
+    /* ===== EDIT ITEMS ===== */
+    .edit-items-panel .item-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .edit-items-panel .item-row span { flex: 1; color: var(--text-secondary); }
+    .edit-items-panel .item-row input {
+      width: 80px;
+      padding: 6px 10px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      text-align: center;
+      font-family: var(--font);
+      outline: none;
+    }
+    .edit-items-panel .item-row input:focus {
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 15px var(--neon-purple-glow);
+    }
+
+    /* ===== PROMOÇÃO ===== */
+    .promo-output {
+      width: 100%;
+      padding: 14px 18px;
+      background: var(--bg-primary);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 14px;
+      resize: vertical;
+      min-height: 300px;
+      outline: none;
+      transition: all var(--transition);
+      white-space: pre-wrap;
+    }
+    .promo-output:focus {
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 25px var(--neon-purple-glow);
+    }
+    .promo-field-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .promo-field-group .full-width { grid-column: 1 / -1; }
+    @media (max-width: 768px) {
+      .promo-field-group { grid-template-columns: 1fr; }
+      .promo-field-group .full-width { grid-column: 1; }
+    }
+
+    /* ===== SISTEMA ===== */
+    .sistema-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .sistema-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all var(--transition);
+    }
+    .sistema-card:hover { border-color: rgba(124, 58, 237, 0.2); }
+    .sistema-card .label {
+      color: var(--text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .sistema-card .value {
+      color: var(--text-primary);
+      font-size: 20px;
+      font-weight: 300;
+    }
+    .sistema-card .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sistema-card .btn-group .btn { font-size: 13px; padding: 8px 16px; }
+    .sistema-card input[type="file"] { display: none; }
+    .sistema-card textarea {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-family: var(--font);
+      font-size: 13px;
+      resize: vertical;
+      min-height: 60px;
+      outline: none;
+      transition: all var(--transition);
+    }
+    .sistema-card textarea:focus {
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 15px var(--neon-purple-glow);
+    }
+
+    .limit-warn {
+      color: #f59e0b;
+      font-size: 13px;
+      margin-left: 8px;
+    }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 32px 36px;
+      max-width: 480px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
+      animation: scaleIn 0.3s ease;
+    }
+    .modal-box .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .modal-box .modal-title i { color: var(--neon-purple); }
+    .modal-box .modal-body { color: var(--text-secondary); font-size: 14px; line-height: 1.7; }
+    .modal-box .modal-body .field {
+      margin-bottom: 14px;
+    }
+    .modal-box .modal-body label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .modal-box .modal-body input,
+    .modal-box .modal-body select {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 14px;
+      outline: none;
+      transition: all var(--transition);
+    }
+    .modal-box .modal-body input:focus,
+    .modal-box .modal-body select:focus {
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 15px var(--neon-purple-glow);
+    }
+    .modal-box .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+
+    /* ===== TOAST ===== */
+    .toast-container {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      padding: 14px 22px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: var(--font);
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.4s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 200px;
+      border-left: 3px solid var(--neon-purple);
+    }
+    .toast.success { border-left-color: #34D399; }
+    .toast.error { border-left-color: #F87171; }
+
+    /* ===== ANIMAÇÕES ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hidden { display: none !important; }
+    .text-purple { color: var(--neon-purple); }
+    .mt-2 { margin-top: 12px; }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      grid-column: 1 / -1;
+    }
+    .empty-state i {
+      font-size: 48px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    /* ===== LOGIN SCREEN ===== */
+    body:has(#loginScreen) {
+      background: radial-gradient(circle at 50% 42%, rgba(124, 58, 237, 0.16), transparent 60%), var(--bg-primary);
+    }
+    #loginScreen {
+      display: flex;
+      flex-direction: column;
+    }
+    #loginScreen h1 {
+      font-family: 'Orbitron', var(--font);
+      font-size: 34px;
+      font-weight: 500;
+      letter-spacing: 6px;
+      color: #A78BFA;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    #loginScreen .mobile-warning {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 18px;
+      line-height: 1.5;
+    }
+    #loginScreen .field { text-align: left; margin-bottom: 20px; }
+    #loginScreen .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    #loginScreen .field input {
+      width: 100%;
+      padding: 15px 20px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-color);
+      border-radius: 30px;
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 14px;
+      outline: none;
+      transition: all var(--transition);
+    }
+    #loginScreen .field input::placeholder { color: var(--text-muted); }
+    #loginScreen .field input:focus {
+      border-color: var(--neon-purple);
+      box-shadow: 0 0 25px var(--neon-purple-glow);
+    }
+    #loginScreen #loginBtn {
+      width: 100%;
+      justify-content: center;
+      border-radius: 30px;
+      margin-top: 12px;
+      background: #2E1A55;
+      border: 1px solid var(--neon-purple);
+      box-shadow: 0 0 25px var(--neon-purple-glow);
+    }
+    #loginScreen #loginBtn:hover { background: #3B2270; }
+    #loginScreen #loginError { text-align: center; font-size: 13px; min-height: 18px; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .sidebar { width: 56px; padding: 16px 0; }
+      .sidebar.expanded { width: 180px; }
+      .main { margin-left: 56px; padding: 16px 16px 30px; }
+      .main.expanded { margin-left: 180px; }
+      .panel { padding: 16px 18px; }
+      .flex-row { flex-direction: column; align-items: stretch; }
+      .flex-row .flex-grow { min-width: unset; }
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .topbar-left .page-title { font-size: 17px; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .sistema-grid { grid-template-columns: 1fr; }
+      .modal-box { padding: 24px 20px; }
+      .total-bar { flex-direction: column; gap: 10px; border-radius: 30px; padding: 20px; }
+      .diff { border: none; padding: 8px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .sidebar.expanded { width: 160px; }
+      .main.expanded { margin-left: 160px; }
+      .topbar-right .badge { font-size: 10px; padding: 4px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== LOGIN (visível por padrão, nada mais aparece antes do login) ===== -->
+  <div id="loginScreen" style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:40px 48px;max-width:400px;width:100%;margin:auto;text-align:center;">
+    <h1>C.O.A</h1>
+    <div class="field"><label>Usuário</label><input type="text" id="username" placeholder="Digite seu usuário"></div>
+    <div class="field"><label>Senha</label><input type="password" id="password" placeholder="Digite sua senha"></div>
+    <button class="btn btn-primary" id="loginBtn">Entrar</button>
+    <div id="loginError" style="color:#F87171;margin-top:12px;"></div>
+    <div class="mobile-warning">Caso o sistema falhe visualmente no Mobile, coloque em Modo DESKTOP.</div>
+  </div>
+
+  <!-- ===== APP (oculto até logar) ===== -->
+  <div id="appContainer" style="display:none;width:100%;height:100vh;overflow:hidden;">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo" id="sidebarLogo">
+      <div class="logo-icon">C</div>
+      <div style="display:flex;flex-direction:column;">
+        <span class="logo-text">C.O.A</span>
+        <span class="logo-sub">Cyber Open-source Analyzer</span>
+      </div>
+    </div>
+    <div class="sidebar-user" id="sidebarUser">
+      <span class="sidebar-user-name" id="userDisplay">Jogador: <strong>-</strong></span>
+      <button class="btn btn-danger btn-sm" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" data-page="dashboard" id="navDashboard">
+        <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+      </a>
+      <a class="nav-item" data-page="calculadora" id="navCalculadora">
+        <i class="fas fa-calculator"></i><span>Calculadora</span>
+      </a>
+      <a class="nav-item" data-page="jogadores" id="navJogadores">
+        <i class="fas fa-users"></i><span>Jogadores</span>
+      </a>
+      <!-- PROMOÇÃO substitui GERADOR -->
+      <a class="nav-item" data-page="promocao" id="navPromocao">
+        <i class="fas fa-user-plus"></i><span>Promoção</span>
+      </a>
+      <a class="nav-item adm-only" data-page="edit-items" id="navEditItems">
+        <i class="fas fa-edit"></i><span>Editar Itens</span>
+      </a>
+      <a class="nav-item" data-page="sistema" id="navSistema">
+        <i class="fas fa-gear"></i><span>Sistema</span>
+      </a>
+    </nav>
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <i class="fas fa-chevron-right" id="toggleIcon"></i>
+      <span>Expandir</span>
+    </button>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main" id="mainContent">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="page-title" id="pageTitle">📊 Dashboard</span>
+        <span class="page-sub" id="pageSub">Visão geral</span>
+      </div>
+    </header>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="dashboardStats">
+        <div class="stat-card"><div class="stat-label">Jogadores</div><div class="stat-value" id="statPlayers">0</div></div>
+        <div class="stat-card"><div class="stat-label">Itens</div><div class="stat-value" id="statItems">0</div></div>
+        <div class="stat-card"><div class="stat-label">Última atualização</div><div class="stat-value" id="statLastUpdate" style="font-size:16px;">—</div></div>
+        <div class="stat-card"><div class="stat-label">Espaço usado</div><div class="stat-value" id="statStorage" style="font-size:18px;">0 KB</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-bolt"></i> Atalhos rápidos</div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;">
+          <button class="btn btn-secondary" onclick="navigateTo('calculadora')">🧮 Calculadora</button>
+          <button class="btn btn-secondary" onclick="navigateTo('jogadores')">👥 Jogadores</button>
+          <button class="btn btn-secondary" onclick="navigateTo('promocao')">⭐ Promoção</button>
+          <button class="btn btn-secondary" onclick="navigateTo('sistema')">🔧 Sistema</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CALCULADORA ===== -->
+    <div class="page" id="page-calculadora">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-arrow-right-arrow-left"></i> Calculadora de Troca</div>
+        <div style="display:flex;flex-wrap:wrap;gap:20px;">
+          <!-- Oferece -->
+          <div style="flex:1;min-width:280px;">
+            <h4 style="color:var(--text-secondary);font-weight:400;margin-bottom:8px;display:flex;justify-content:space-between;">
+              <span><i class="fas fa-hand"></i> Você oferece</span>
+              <button class="btn btn-sm btn-danger" onclick="clearSide('L')">Limpar</button>
+            </h4>
+            <div class="input-wrap">
+              <i class="fas fa-search"></i>
+              <input type="text" id="searchInputL" placeholder="Buscar item..." autocomplete="off">
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <select id="a" style="flex:1;padding:12px 16px;background:var(--bg-primary);border:2px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:14px;outline:none;"></select>
+              <button class="btn btn-primary btn-sm" onclick='addItem("L", a.value)'>Adicionar</button>
+            </div>
+            <ul class="item-list" id="L"></ul>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+              <span style="color:var(--text-secondary);">Total: <strong id="tl" style="color:var(--neon-purple);">0</strong></span>
+              <span class="limit-warn" id="warnL"></span>
+            </div>
+            <div class="suggest-wrap">
+              <button class="suggest-btn" onclick="toggleSuggest('L')"><i class="fas fa-box"></i> Sugestões de Conjuntos</button>
+              <div class="suggest-dropdown" id="suggestL"></div>
+            </div>
+          </div>
+          <!-- Recebe -->
+          <div style="flex:1;min-width:280px;">
+            <h4 style="color:var(--text-secondary);font-weight:400;margin-bottom:8px;display:flex;justify-content:space-between;">
+              <span><i class="fas fa-hand-receiving"></i> Recebe</span>
+              <button class="btn btn-sm btn-danger" onclick="clearSide('R')">Limpar</button>
+            </h4>
+            <div class="input-wrap">
+              <i class="fas fa-search"></i>
+              <input type="text" id="searchInputR" placeholder="Buscar item..." autocomplete="off">
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <select id="b" style="flex:1;padding:12px 16px;background:var(--bg-primary);border:2px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:14px;outline:none;"></select>
+              <button class="btn btn-primary btn-sm" onclick='addItem("R", b.value)'>Adicionar</button>
+            </div>
+            <ul class="item-list" id="R"></ul>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+              <span style="color:var(--text-secondary);">Total: <strong id="tr" style="color:var(--neon-purple);">0</strong></span>
+              <span class="limit-warn" id="warnR"></span>
+            </div>
+            <div class="suggest-wrap">
+              <button class="suggest-btn" onclick="toggleSuggest('R')"><i class="fas fa-box"></i> Sugestões de Conjuntos</button>
+              <div class="suggest-dropdown" id="suggestR"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Total Bar -->
+        <div class="total-bar" style="margin-top:20px;">
+          <div class="total-item"><span class="label">Oferece:</span><span class="value" id="totalL">0</span></div>
+          <div class="total-item"><span class="label">Recebe:</span><span class="value" id="totalR">0</span></div>
+          <div class="diff" id="diffDisplay">0</div>
+          <div id="res" style="font-size:20px;color:var(--neon-purple);font-weight:300;">Troca justa</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== JOGADORES ===== -->
+    <div class="page" id="page-jogadores">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-users"></i> Lista de Jogadores</div>
+        <div class="table-wrap">
+          <table class="styled-table">
+            <thead><tr><th>Nome</th><th>Poder</th><th>Discord</th><th>Inativo</th><th>Participação</th><th class="adm-only" style="display:none;">Ações</th></tr></thead>
+            <tbody id="playersBody"></tbody>
+          </table>
+        </div>
+        <div id="addPlayerArea" style="display:none;margin-top:20px;padding:16px;background:var(--bg-primary);border-radius:var(--radius-sm);border:1px solid var(--border-color);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+          <input type="text" id="newPlayerName" placeholder="Nome" style="flex:1;min-width:120px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+          <input type="text" id="newPlayerPower" placeholder="Poder (ex: 5.2M)" style="flex:1;min-width:100px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+          <input type="text" id="newPlayerDiscord" placeholder="Link Discord" style="flex:1;min-width:120px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+          <select id="newPlayerInactive" style="padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+            <option value="não">Não</option><option value="sim">Sim</option><option value="parcial">Parcial</option>
+          </select>
+          <input type="number" id="newPlayerParticipation" placeholder="0-10" min="0" max="10" step="1" value="0" style="width:80px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+          <button class="btn btn-primary" id="addPlayerBtn">Adicionar</button>
+        </div>
+        <div id="guestMsg" style="color:var(--text-muted);margin-top:12px;display:none;">Modo convidado: visualização apenas.</div>
+      </div>
+    </div>
+
+    <!-- ===== PROMOÇÃO (substitui GERADOR) ===== -->
+    <div class="page" id="page-promocao">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-user-plus"></i> Gerador de Promoção</div>
+        <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px;">
+          Crie uma mensagem de promoção formatada para divulgação.
+        </p>
+
+        <div class="promo-field-group">
+          <!-- Responsável -->
+          <div class="input-wrap">
+            <i class="fas fa-user-tie"></i>
+            <input type="text" id="promoResponsavel" placeholder="Responsável (ADM/Mod)" value="">
+          </div>
+          <!-- Indivíduo promovido -->
+          <div class="input-wrap">
+            <i class="fas fa-user"></i>
+            <input type="text" id="promoIndividuo" placeholder="Nick do promovido" list="playerSuggestions">
+            <datalist id="playerSuggestions"></datalist>
+          </div>
+          <!-- Patente antiga -->
+          <div class="input-wrap">
+            <i class="fas fa-arrow-down"></i>
+            <input type="text" id="promoPatenteAntiga" placeholder="Patente antiga (ex: [Tg-Elite] Tigre de Elite.)" list="rankSuggestions">
+          </div>
+          <!-- Patente nova -->
+          <div class="input-wrap">
+            <i class="fas fa-arrow-up"></i>
+            <input type="text" id="promoPatenteNova" placeholder="Patente nova (ex: [3° Class] Tigre de Terceira Classe.)" list="rankSuggestions">
+          </div>
+          <!-- Motivo -->
+          <div class="input-wrap full-width">
+            <i class="fas fa-pencil-alt" style="top:18px;transform:none;"></i>
+            <textarea id="promoMotivo" placeholder="Motivo da promoção (padrão: capacitação de patente concluída.)" style="padding-left:48px;">capacitação de patente concluída.</textarea>
+          </div>
+        </div>
+
+        <datalist id="rankSuggestions">
+          <option value="[ALT-COM] Alto-Comando">
+          <option value="[OF] Oficiais">
+          <option value="[GD] Graduados">
+          <option value="[PR] Praças">
+          <option value="[Tg-Elite] Tigre de Elite.">
+          <option value="[3° Class] Tigre de Terceira Classe.">
+        </datalist>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;">
+          <button class="btn btn-primary" id="generatePromoBtn"><i class="fas fa-wand-magic-sparkles"></i> Gerar Promoção</button>
+          <button class="btn btn-secondary" id="copyPromoBtn"><i class="fas fa-copy"></i> Copiar</button>
+          <button class="btn btn-secondary" id="downloadPromoTxtBtn"><i class="fas fa-file-alt"></i> Baixar .txt</button>
+          <button class="btn btn-secondary" id="clearPromoBtn"><i class="fas fa-eraser"></i> Limpar</button>
+        </div>
+
+        <textarea class="promo-output" id="promoOutput" readonly placeholder="A mensagem de promoção aparecerá aqui..."></textarea>
+      </div>
+    </div>
+
+    <!-- ===== EDITAR ITENS (ADM) ===== -->
+    <div class="page" id="page-edit-items">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-edit"></i> Editar Valores dos Itens</div>
+        <div class="edit-items-panel" id="editItemsContainer"></div>
+        <div style="margin-top:16px;">
+          <button class="btn btn-secondary" onclick="resetAllItems()"><i class="fas fa-undo"></i> Restaurar valores padrão</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SISTEMA ===== -->
+    <div class="page" id="page-sistema">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-gear"></i> Sistema</div>
+        <div class="sistema-grid">
+          <div class="sistema-card">
+            <span class="label">Espaço utilizado</span>
+            <span class="value" id="storageSize">0 KB</span>
+          </div>
+          <div class="sistema-card">
+            <span class="label">Última atualização</span>
+            <span class="value" id="lastUpdate">Nunca</span>
+          </div>
+          <div class="sistema-card">
+            <span class="label">Compartilhamento</span>
+            <div class="btn-group">
+              <button class="btn btn-secondary" onclick="exportFullData()"><i class="fas fa-file-export"></i> Exportar Lista</button>
+              <button class="btn btn-secondary" onclick="document.getElementById('importFileInput').click()"><i class="fas fa-file-import"></i> Importar Lista</button>
+              <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importFullData(event)">
+            </div>
+          </div>
+          <div class="sistema-card">
+            <span class="label">Código de Compartilhamento</span>
+            <div class="btn-group">
+              <button class="btn btn-secondary" onclick="copyShareCode()"><i class="fas fa-copy"></i> Copiar Código</button>
+              <button class="btn btn-secondary" onclick="importShareCode()"><i class="fas fa-file-import"></i> Importar Código</button>
+            </div>
+            <textarea id="shareCodeInput" placeholder="Cole o código Base64 aqui..."></textarea>
+          </div>
+          <div class="sistema-card">
+            <span class="label">Backup</span>
+            <div class="btn-group">
+              <button class="btn btn-secondary" onclick="exportBackup()"><i class="fas fa-download"></i> Exportar Backup</button>
+              <button class="btn btn-secondary" onclick="document.getElementById('restoreBackupInput').click()"><i class="fas fa-upload"></i> Restaurar Backup</button>
+              <input type="file" id="restoreBackupInput" accept=".json" style="display:none" onchange="restoreBackup(event)">
+            </div>
+          </div>
+          <div class="sistema-card adm-only" style="display:none;">
+            <span class="label">Gerenciamento</span>
+            <div class="btn-group">
+              <button class="btn btn-danger" onclick="clearAllStorage()"><i class="fas fa-trash"></i> Limpar LocalStorage</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  </div><!-- /appContainer -->
+
+  <!-- ===== MODAL ===== -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+      <div class="modal-title"><i class="fas fa-user-edit"></i> <span id="modalTitle">Editar Jogador</span></div>
+      <div class="modal-body" id="modalBody">
+        <div class="field"><label>Nome</label><input type="text" id="editPlayerName" placeholder="Nome"></div>
+        <div class="field"><label>Poder</label><input type="text" id="editPlayerPower" placeholder="Poder (ex: 5.2M)"></div>
+        <div class="field"><label>Discord</label><input type="text" id="editPlayerDiscord" placeholder="Link Discord"></div>
+        <div class="field"><label>Inativo</label>
+          <select id="editPlayerInactive"><option value="não">Não</option><option value="sim">Sim</option><option value="parcial">Parcial</option></select>
+        </div>
+        <div class="field"><label>Participação (0-10)</label><input type="number" id="editPlayerParticipation" placeholder="0-10" min="0" max="10" step="1"></div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+          <button class="btn btn-primary" id="saveEditPlayerBtn">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ===== SCRIPT PRINCIPAL ===== -->
+  <script>
+    // ====================================================================
+    // 1. DADOS PADRÃO (ITENS)
+    // ====================================================================
+    const DEFAULT_ITEMS = [
+      { name: 'Sayen Drip V', value: 180, demand: 'Medium-High' },
+      { name: 'Sayen Drip IV', value: 30, demand: 'Low' },
+      { name: 'Sayen Drip III', value: 5, demand: 'Very Low' },
+      { name: 'Sayen Drip II', value: 1, demand: 'Very Low' },
+      { name: 'Sayen Drip I', value: 1, demand: 'Very Low' },
+      { name: 'Iron Fist V', value: 15, demand: 'Low' },
+      { name: 'Health Regen V', value: 15, demand: 'Low' },
+      { name: 'Critical Strike V', value: 10, demand: 'Very Low' },
+      { name: 'Critical Damage V', value: 5, demand: 'Very Low' },
+      { name: 'Enchant Remover', value: 1, demand: 'Very Low' },
+      { name: 'Zenkai Perma Stone ', value: 40, demand: 'Medium' },
+      { name: 'Legendary Perma Stone', value: 15, demand: 'Low' },
+      { name: 'Epic Perma Stone', value: 10, demand: 'Very Low' },
+      { name: 'Rare Perma Stone', value: 5, demand: 'Very Low' },
+      { name: 'Uncommon Perma Stone', value: 3, demand: 'Very Low' },
+      { name: '1 Hour Zeni Boost', value: 1, demand: 'Very Low' },
+      { name: '1 Hour Mastery Boost', value: 1, demand: 'Very Low' },
+      { name: '1 Hour XP Boost', value: 1, demand: 'Very Low' },
+      { name: 'Great Ape Form', value: 260, demand: 'Very Low-Low' },
+      { name: 'Boku Black Bundle', value: 80, demand: 'Very Low-Low' },
+      { name: 'Brolo Bundle', value: 30, demand: 'Very Low-Low' },
+      { name: 'Brave Bundle', value: 25, demand: 'Very Low-Low' },
+      { name: 'Gogota Bundle', value: 20, demand: 'Very Low-Low' },
+      { name: 'Time Chamber', value: 15, demand: 'Very Low' },
+      { name: 'Demon Mark', value: 10, demand: 'Very Low' },
+      { name: 'Instant Transmission', value: 10, demand: 'Very Low' },
+      { name: 'Soul Vanity', value: 10, demand: 'Very Low' },
+      { name: 'Dragon Radar', value: 10, demand: 'Very Low' },
+      { name: 'Drip', value: 7, demand: 'Very Low' },
+      { name: 'x1.25 Drops Luck', value: 7, demand: 'Very Low' },
+      { name: 'Nimbus', value: 5, demand: 'Very Low' },
+      { name: 'Custom Color Picker', value: 5, demand: 'Very Low' },
+      { name: 'Fast Travel', value: 5, demand: 'Very Low' },
+      { name: 'Chest Luck', value: 2, demand: 'Very Low' },
+      { name: 'Neon Catrin Mask', value: 2300, demand: 'Very Low-Low' },
+      { name: 'Bright Offering Mask', value: 1500, demand: 'Very Low-Low' },
+      { name: 'Light Tunnel Mask', value: 1380, demand: 'Very Low-Low' },
+      { name: 'Halloween Halo', value: 500, demand: 'Very Low-Low' },
+      { name: 'Immortal Halo', value: 220, demand: 'Very Low-Low' },
+      { name: 'Witch Hat (2023)', value: 160, demand: 'Very Low' },
+      { name: 'Witch Hat (2024)', value: 120, demand: 'Very Low' },
+      { name: 'Brolo Earrings', value: 80, demand: 'Very Low' },
+      { name: 'White Pumpkin Head', value: 65, demand: 'Very Low' },
+      { name: 'Troll Mask', value: 60, demand: 'Very Low' },
+      { name: 'Beowulf Gloves', value: 20, demand: 'Low' },
+      { name: 'Spider Earrings', value: 20, demand: 'Very Low' },
+      { name: "Healer's Necklace", value: 20, demand: 'Very Low' },
+      { name: 'The Coolest Propeller ', value: 20, demand: 'Very Low' },
+      { name: 'Eye Patch', value: 15, demand: 'Very Low' },
+      { name: 'Fisherman Hat', value: 15, demand: 'Very Low' },
+      { name: 'Squid Hat', value: 15, demand: 'Very Low' },
+      { name: 'Opa Man Cape', value: 10, demand: 'Very Low' },
+      { name: 'Evil Org Cape', value: 10, demand: 'Very Low' },
+      { name: '18 Earrings', value: 10, demand: 'Very Low' },
+      { name: 'Brolo Pendant', value: 7, demand: 'Very Low' },
+      { name: 'Pumpkin Glasses', value: 7, demand: 'Very Low' },
+      { name: 'Hockey Mask', value: 7, demand: 'Very Low' },
+      { name: 'Undead Venus', value: 5, demand: 'Very Low' },
+      { name: 'Pumpkin Head', value: 5, demand: 'Very Low' },
+      { name: 'Pumpkin Tamma', value: 3, demand: 'None-Very Low' },
+      { name: 'Brolo Crown', value: 3, demand: 'Very Low' },
+      { name: 'Pumpkin Buddies', value: 3, demand: 'None-Very Low' },
+      { name: 'Crow', value: 3, demand: 'None-Very Low' },
+      { name: 'Rotten Hockey Mask', value: 3, demand: 'None-Very Low' },
+      { name: 'Catrin Dorado Set', value: 4000, demand: 'Very Low-Low' },
+      { name: 'Hat', value: 1000, demand: 'Very Low-Low' },
+      { name: 'Shirt', value: 1000, demand: 'Very Low-Low' },
+      { name: 'Pants', value: 1000, demand: 'Very Low-Low' },
+      { name: 'Shoes', value: 1000, demand: 'Very Low-Low' },
+      { name: 'Santa Set (2023)', value: 720, demand: 'Very Low' },
+      { name: 'Hat', value: 675, demand: 'Very Low' },
+      { name: 'Shirt', value: 20, demand: 'Very Low' },
+      { name: 'Pants', value: 15, demand: 'Very Low' },
+      { name: 'Shoes', value: 10, demand: 'Very Low' },
+      { name: 'Xeno Boku Set', value: 700, demand: 'Medium' },
+      { name: 'Bandana', value: 65, demand: 'Medium' },
+      { name: 'Shirt', value: 495, demand: 'Medium' },
+      { name: 'Pants', value: 88, demand: 'Medium' },
+      { name: 'Shoes', value: 55, demand: 'Medium' },
+      { name: 'Elf Set (2023)', value: 668, demand: 'Very Low' },
+      { name: 'Hat', value: 628, demand: 'Very Low-Low' },
+      { name: 'Shirt', value: 20, demand: 'Very Low' },
+      { name: 'Pants', value: 12, demand: 'Very Low' },
+      { name: 'Shoes', value: 8, demand: 'Very Low' },
+      { name: 'Black Catrin Set', value: 425, demand: 'Very Low' },
+      { name: 'Hat', value: 240, demand: 'Very Low' },
+      { name: 'Shirt', value: 70, demand: 'Very Low' },
+      { name: 'Pants', value: 65, demand: 'Very Low' },
+      { name: 'Shoes', value: 50, demand: 'Very Low' },
+      { name: 'Ringmaster Set', value: 160, demand: 'Very Low-Low' },
+      { name: 'Hat', value: 30, demand: 'Very Low-Low' },
+      { name: 'Shirt', value: 70, demand: 'Very Low-Low' },
+      { name: 'Pants', value: 45, demand: 'Very Low' },
+      { name: 'Shoes', value: 15, demand: 'Very Low' },
+      { name: 'Bunny Set', value: 95, demand: 'Very Low' },
+      { name: 'Headband', value: 25, demand: 'Very Low' },
+      { name: 'Shirt', value: 30, demand: 'Very Low' },
+      { name: 'Pants', value: 25, demand: 'Very Low' },
+      { name: 'Shoes', value: 15, demand: 'Very Low' },
+      { name: 'Lucre The Ascended Set (Full)', value: 40, demand: 'Very Low' },
+      { name: 'Shirt', value: 10, demand: 'Very Low' },
+      { name: 'Shirtless', value: 15, demand: 'Very Low' },
+      { name: 'Pants', value: 10, demand: 'Very Low' },
+      { name: 'Shoes', value: 5, demand: 'Very Low' },
+      { name: 'Winter Sweater (2023)', value: 35, demand: 'Very Low' },
+      { name: 'Rabbit Buttler Set', value: 32, demand: 'Very Low' },
+      { name: 'Hat ', value: 8, demand: 'Very Low' },
+      { name: 'Back', value: 8, demand: 'Very Low' },
+      { name: 'Dress', value: 8, demand: 'Very Low' },
+      { name: 'Pants ', value: 4, demand: 'Very Low' },
+      { name: 'Shoes', value: 4, demand: 'Very Low' },
+      { name: 'DS Jacket', value: 30, demand: 'Low' },
+      { name: 'Light Of Jolliness Set', value: 30, demand: 'Very Low' },
+      { name: 'Back', value: 20, demand: 'Very Low' },
+      { name: 'Shirt', value: 5, demand: 'Very Low' },
+      { name: 'Pants', value: 3, demand: 'Very Low' },
+      { name: 'Shoes', value: 2, demand: 'Very Low' },
+      { name: 'Dark Wizard Set', value: 30, demand: 'Very Low' },
+      { name: 'Hat', value: 5, demand: 'Very Low' },
+      { name: 'Face', value: 5, demand: 'Very Low' },
+      { name: 'Neck', value: 5, demand: 'Very Low' },
+      { name: 'Shirt', value: 5, demand: 'Very Low' },
+      { name: 'Pants', value: 5, demand: 'Very Low' },
+      { name: 'Shoes', value: 5, demand: 'Very Low' },
+      { name: 'Hunser Set', value: 25, demand: 'Very Low' },
+      { name: 'Hat ', value: 5, demand: 'Very Low' },
+      { name: 'Bucket', value: 2, demand: 'Very Low' },
+      { name: 'Shirt', value: 10, demand: 'Very Low' },
+      { name: 'Pants ', value: 5, demand: 'Very Low' },
+      { name: 'Shoes', value: 3, demand: 'Very Low' },
+      { name: 'Glacial Deity Set', value: 25, demand: 'Very Low' },
+      { name: 'Hair', value: 8, demand: 'Very Low' },
+      { name: 'Monocle', value: 5, demand: 'Very Low' },
+      { name: 'Shirt', value: 4, demand: 'Very Low' },
+      { name: 'Pants', value: 4, demand: 'Very Low' },
+      { name: 'Shoes', value: 4, demand: 'Very Low' },
+      { name: 'Fallen Christmas Reaper Set', value: 25, demand: 'Very Low' },
+      { name: 'Back', value: 8, demand: 'Very Low' },
+      { name: 'Head', value: 5, demand: 'Very Low' },
+      { name: 'Shirt', value: 4, demand: 'Very Low' },
+      { name: 'Pants', value: 4, demand: 'Very Low' },
+      { name: 'Shoes', value: 4, demand: 'Very Low' },
+      { name: 'Polar Owl Hunter Set', value: 25, demand: 'Very Low' },
+      { name: 'Head', value: 8, demand: 'Very Low' },
+      { name: 'Necklace', value: 5, demand: 'Very Low' },
+      { name: 'Shirt', value: 4, demand: 'Very Low' },
+      { name: 'Pants', value: 4, demand: 'Very Low' },
+      { name: 'Shoes', value: 4, demand: 'Very Low' },
+      { name: 'Dullahan Set', value: 21, demand: 'Very Low' },
+      { name: 'Shirt', value: 6, demand: 'Very Low' },
+      { name: 'Pants', value: 5, demand: 'Very Low' },
+      { name: 'Shoes', value: 5, demand: 'Very Low' },
+      { name: 'Malicious Goku Black Set', value: 20, demand: 'Very Low' },
+      { name: 'Mask', value: 6, demand: 'Very Low' },
+      { name: 'Shirt', value: 5, demand: 'Very Low' },
+      { name: 'Pants', value: 5, demand: 'Very Low' },
+      { name: 'Shoes', value: 4, demand: 'Very Low' },
+      { name: 'Justice Bunny Set', value: 20, demand: 'Very Low' },
+      { name: 'Helmet ', value: 4, demand: 'Very Low' },
+      { name: 'Cape', value: 8, demand: 'Very Low' },
+      { name: 'Shirt', value: 4, demand: 'Very Low' },
+      { name: 'Pants ', value: 4, demand: 'Very Low' },
+      { name: 'Shoes', value: 4, demand: 'Very Low' },
+      { name: 'Ninja Set', value: 20, demand: 'Very Low' },
+      { name: 'Shirt', value: 10, demand: 'Very Low' },
+      { name: 'Pants', value: 6, demand: 'Very Low' },
+      { name: 'Shoes', value: 4, demand: 'Very Low' },
+      { name: 'Fused Zama Set', value: 18, demand: 'Very Low' },
+      { name: 'Shirt', value: 12, demand: 'Very Low' },
+      { name: 'Pants', value: 8, demand: 'Very Low' },
+      { name: 'Shoes', value: 4, demand: 'Very Low' },
+      { name: 'Xeno Boku Trench Set', value: 10, demand: 'Very Low' },
+      { name: 'Sling', value: 4, demand: 'Very Low' },
+      { name: 'Shirt ', value: 2, demand: 'Very Low' },
+      { name: 'Pants', value: 2, demand: 'Very Low' },
+      { name: 'Shoes', value: 2, demand: 'Very Low' },
+      { name: 'Teen Gokan Set (Ripped)', value: 10, demand: 'Very Low' },
+      { name: 'Cape (Ripped)', value: 5, demand: 'Very Low' },
+      { name: 'Cape', value: 5, demand: 'Very Low' },
+      { name: 'Shirt', value: 2, demand: 'Very Low' },
+      { name: 'Pants', value: 2, demand: 'Very Low' },
+      { name: 'Shoes', value: 1, demand: 'Very Low' },
+      { name: 'Carnaval Set (M)', value: 10, demand: 'Very Low' },
+      { name: 'Hat', value: 2, demand: 'Very Low' },
+      { name: 'Wings', value: 3, demand: 'Very Low' },
+      { name: 'Shirt', value: 2, demand: 'Very Low' },
+      { name: 'Pant', value: 2, demand: 'Very Low' },
+      { name: 'Shoes', value: 1, demand: 'Very Low' },
+      { name: 'Carnaval Set (F)', value: 10, demand: 'Very Low' },
+      { name: 'Hat', value: 2, demand: 'Very Low' },
+      { name: 'Wings', value: 3, demand: 'Very Low' },
+      { name: 'Shirt', value: 2, demand: 'Very Low' },
+      { name: 'Pant', value: 2, demand: 'Very Low' },
+      { name: 'Shoes', value: 1, demand: 'Very Low' },
+      { name: 'Prince Reindeer Set', value: 10, demand: 'Very Low' },
+      { name: 'Brasil Latina Set', value: 7, demand: 'Very Low' },
+      { name: 'Sweet Gothic Set', value: 7, demand: 'Very Low' },
+      { name: 'Cupid Set', value: 7, demand: 'Very Low' },
+      { name: 'Krampus Moro Set', value: 7, demand: 'Very Low' },
+      { name: 'Ripped Santa Set', value: 7, demand: 'Very Low' },
+      { name: 'Bunny Set (Valentines)', value: 5, demand: 'Very Low' },
+      { name: 'Bear Set', value: 5, demand: 'Very Low' },
+      { name: 'Corrupted Saiyan Set', value: 5, demand: 'Very Low' },
+      { name: 'Super Boo Set', value: 5, demand: 'Very Low' },
+      { name: 'Arm Bands', value: 2, demand: 'Very Low' },
+      { name: 'Pants', value: 2, demand: 'Very Low' },
+      { name: 'Shoes', value: 1, demand: 'Very Low' },
+      { name: 'Halfla Set', value: 5, demand: 'Very Low' },
+      { name: 'Shirt', value: 2, demand: 'Very Low' },
+      { name: 'Pants', value: 2, demand: 'Very Low' },
+      { name: 'Shoes', value: 1, demand: 'Very Low' },
+      { name: 'Zama Set', value: 5, demand: 'Very Low' },
+      { name: 'Shirt', value: 2, demand: 'Very Low' },
+      { name: 'Pant', value: 2, demand: 'Very Low' },
+      { name: 'Shoes', value: 1, demand: 'Very Low' },
+      { name: 'Brolo (Z) Set', value: 3, demand: 'Very Low' },
+      { name: 'Shirt', value: 1, demand: 'Very Low' },
+      { name: 'Pants', value: 1, demand: 'Very Low' },
+      { name: 'Shoes', value: 1, demand: 'Very Low' },
+      { name: 'Broly (S) Set', value: 1, demand: 'Very Low' },
+      { name: "Hair Glow (Halloween '24)", value: 95, demand: 'Low' },
+      { name: 'Hair Glow (White)', value: 7, demand: 'Very Low' },
+      { name: 'Hair Glow (Yellow)', value: 5, demand: 'Very Low' },
+      { name: 'Halloween 2023 Aura', value: 4000, demand: 'Low' },
+      { name: 'Frost SSJ4', value: 2580, demand: 'Medium' },
+      { name: 'Shadow SSJ4', value: 1200, demand: 'High-Very High' },
+      { name: 'Festive Aura', value: 415, demand: 'Very Low-Low' },
+      { name: 'Headless Aura', value: 250, demand: 'Low-Medium' },
+      { name: 'Halloween 2024 Aura', value: 190, demand: 'Medium-High' },
+      { name: 'Ultra Instinkt', value: 145, demand: 'Very Low-Low' },
+      { name: 'Easter Aura', value: 70, demand: 'Very Low-Low' },
+      { name: 'Halloween 2025 Aura', value: 30, demand: 'Low' },
+      { name: 'Lovebound Aura', value: 20, demand: 'Very Low' },
+      { name: 'Brasil Latina Aura', value: 15, demand: 'Very Low' },
+      { name: 'Paschal Aura', value: 15, demand: 'Very Low' },
+      { name: 'Winter Spirit Aura', value: 12, demand: 'Very Low' },
+      { name: 'Blue Ice Aura', value: 12, demand: 'Very Low' },
+      { name: 'Ultra Eggo Aura ', value: 10, demand: 'Very Low' },
+      { name: 'Borealis Aura', value: 7, demand: 'Very Low' },
+      { name: 'SnowStorm Aura', value: 7, demand: 'Very Low' },
+      { name: 'Super Sayen BLUE Aura (OG)', value: 50, demand: 'Medium-High' },
+      { name: 'Super Sayen GOD Aura (OG)', value: 40, demand: 'Medium-High' },
+      { name: 'Super Sayen Rose Aura (OG)', value: 30, demand: 'Medium-High' },
+      { name: 'LSSJ Aura (OG)', value: 20, demand: 'Low-Medium' },
+      { name: 'Mystic Aura (OG)', value: 20, demand: 'Low-Medium' },
+      { name: 'Super Rage Sayen Aura (OG)', value: 20, demand: 'Low' },
+      { name: 'Super Sayen 4 Aura (OG)', value: 20, demand: 'Low' },
+      { name: 'Super Sayen 3 Aura (OG)', value: 15, demand: 'Low' },
+      { name: 'Super Sayen 2 Aura (OG)', value: 10, demand: 'Low' },
+      { name: 'Super Sayen Aura (OG)', value: 5, demand: 'Low' },
+      { name: 'Shenron Aura', value: 30, demand: 'Very Low' },
+      { name: 'Raid Grandmaster Aura', value: 20, demand: 'Very Low' },
+      { name: 'Divine Immortal Aura ', value: 15, demand: 'Very Low' },
+      { name: 'Demon 21 Aura', value: 5, demand: 'Very Low' },
+      { name: 'Brolo (Z) LSSJ Aura', value: 1, demand: 'Very Low' },
+      { name: 'Gogeta Aura', value: 1, demand: 'Very Low' },
+      { name: 'Super Sayen Rage', value: 1, demand: 'Very Low' },
+      { name: 'Cell Aura', value: 1, demand: 'Very Low' },
+      { name: 'Super Sayen 4 Aura', value: 1, demand: 'Very Low' },
+      { name: 'Shadow Mist Aura', value: 1, demand: 'None' },
+      { name: 'Kale LSSJ Aura', value: 1, demand: 'None' },
+      { name: 'Brolo (S) LSSJ Aura ', value: 1, demand: 'None' },
+      { name: 'Perma Destruction (Special Edition)', value: 4600, demand: 'Low-Medium' },
+      { name: 'Destruction Soul (Special Edition)', value: 4560, demand: 'Low-Medium' },
+      { name: 'Perma Savior (Special Edition)', value: 1080, demand: 'Low' },
+      { name: 'Savior Soul (Special Edition)', value: 1040, demand: 'Low' },
+      { name: 'Perma Beast (Special Edition)', value: 705, demand: 'Low' },
+      { name: 'Beast Soul (Special Edition)', value: 665, demand: 'Low' },
+      { name: 'Perma Immortal (Special Edition)', value: 440, demand: 'Very Low' },
+      { name: 'Immortal Soul (Special Edition)', value: 400, demand: 'Very Low' },
+      { name: 'Perm Beerus', value: 250, demand: 'Medium' },
+      { name: 'Beerus Soul', value: 210, demand: 'Medium' },
+      { name: 'Perma Despair', value: 80, demand: 'Very Low' },
+      { name: 'Despair Soul', value: 55, demand: 'Very Low' },
+      { name: 'Perma Beast', value: 70, demand: 'Very Low' },
+      { name: 'Beast Soul', value: 30, demand: 'Very Low' },
+      { name: 'Perma Haunted Rider', value: 50, demand: 'Very Low' },
+      { name: 'Haunted Rider', value: 25, demand: 'Very Low' },
+      { name: 'Perma Conqueror', value: 40, demand: 'Very Low' },
+      { name: 'Conqueror Soul', value: 25, demand: 'Very Low' },
+      { name: 'Perma Immortal', value: 40, demand: 'Very Low' },
+      { name: 'Immortal Soul', value: 25, demand: 'Very Low' },
+      { name: 'Perma Savior', value: 15, demand: 'Very Low' },
+      { name: 'Savior Soul', value: 5, demand: 'Very Low' },
+      { name: 'Perma Confident', value: 10, demand: 'Very Low' },
+      { name: 'Confident Soul', value: 5, demand: 'Very Low' },
+      { name: 'Perma Hope', value: 5, demand: 'None' },
+      { name: 'Hope Soul', value: 1, demand: 'None' },
+      { name: 'Perma Life Soul', value: 5, demand: 'None' },
+      { name: 'Life Soul', value: 1, demand: 'None' },
+      { name: 'Perma Exiled', value: 5, demand: 'None' },
+      { name: 'Exiled Soul', value: 1, demand: 'None' },
+      { name: 'Dullahan Fire', value: 750, demand: 'Medium' },
+      { name: 'Abstraction Set', value: 560, demand: 'Very Low' },
+      { name: 'Head Piece', value: 167, demand: 'Very Low' },
+      { name: 'Shirt', value: 60, demand: 'Very Low' },
+      { name: 'Pants', value: 108, demand: 'Very Low' },
+      { name: 'Shoes', value: 215, demand: 'Very Low' },
+      { name: 'Majin Tail', value: 560, demand: 'Very Low' },
+      { name: 'Fighting Spirit V2 Set', value: 425, demand: 'Very Low' },
+      { name: 'Head Piece', value: 80, demand: 'Very Low' },
+      { name: 'Shirt', value: 80, demand: 'Very Low' },
+      { name: 'Pants', value: 108, demand: 'Very Low' },
+      { name: 'Shoes', value: 133, demand: 'Very Low' },
+      { name: 'Fighting Spirit V1 Set', value: 190, demand: 'Very Low' },
+      { name: 'Head Piece', value: 26, demand: 'Very Low' },
+      { name: 'Shirt', value: 36, demand: 'Very Low' },
+      { name: 'Pants', value: 52, demand: 'Very Low' },
+      { name: 'Shoes', value: 76, demand: 'Very Low' },
+      { name: 'Turtle Shell', value: 70, demand: 'Very Low' },
+      { name: 'God Scythe', value: 20000, demand: 'Very Low' },
+      { name: 'Angel Scythe', value: 9200, demand: 'Very Low' },
+      { name: 'Festive Scythe', value: 2760, demand: 'Very Low-Low' },
+      { name: 'Void Scythe', value: 815, demand: 'Low-Medium' },
+      { name: 'Chocolate Scythe', value: 70, demand: 'Very Low' },
+      { name: 'Heart Ripper Scythe', value: 60, demand: 'Very Low' },
+      { name: 'Egg Rapier', value: 20, demand: 'Very Low' }
+    ];
+
+    // ====================================================================
+    // 2. ITENS (com localStorage)
+    // ====================================================================
+    function loadItems() {
+      const stored = localStorage.getItem('dragonSoul_items');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          return DEFAULT_ITEMS.map((def, idx) => ({
+            ...def,
+            value: parsed[idx] !== undefined ? parsed[idx] : def.value
+          }));
+        } catch (e) {}
+      }
+      return DEFAULT_ITEMS.map(i => ({ ...i }));
+    }
+
+    function saveItems(items) {
+      localStorage.setItem('dragonSoul_items', JSON.stringify(items.map(i => i.value)));
+    }
+
+    let items = loadItems();
+
+    function renameSetComponents(arr) {
+      const renamed = [];
+      let currentSet = null;
+      for (const item of arr) {
+        const name = item.name.trim();
+        const isSet = /Set/.test(name) || /Bundle/.test(name);
+        if (isSet && !name.includes('Back') && !name.includes('Hat') && !name.includes('Shirt') && !name.includes(
+            'Pants') && !name.includes('Shoes') && !name.includes('Head') && !name.includes('Cape') && !name
+          .includes('Wings') && !name.includes('Mask') && !name.includes('Bandana') && !name.includes('Headband') &&
+          !name.includes('Helmet') && !name.includes('Sling') && !name.includes('Monocle') && !name.includes(
+            'Necklace') && !name.includes('Face') && !name.includes('Neck') && !name.includes('Dress') && !name
+          .includes('Bucket') && !name.includes('Hair') && !name.includes('Arm Bands')) {
+          currentSet = name;
+          renamed.push({ ...item, name });
+          continue;
+        }
+        if (currentSet && !isSet) {
+          const genericParts = ['Hat', 'Shirt', 'Pants', 'Shoes', 'Back', 'Head', 'Cape', 'Wings', 'Mask', 'Bandana',
+            'Headband', 'Helmet', 'Sling', 'Monocle', 'Necklace', 'Face', 'Neck', 'Dress', 'Bucket', 'Hair',
+            'Arm Bands', 'Pant', 'Shirtless', 'Head Piece', 'Bucket', 'Shoes', 'Pants ', 'Hat ', 'Shirt ',
+            'Pants  ', 'Helmet ', 'Cape (Ripped)', 'Pant', 'Cape'
+          ];
+          let isGeneric = false;
+          for (const part of genericParts) {
+            if (name === part || name.startsWith(part + ' ') || name.startsWith(part + '(')) {
+              isGeneric = true;
+              break;
+            }
+          }
+          if (isGeneric) {
+            renamed.push({ ...item, name: currentSet + ' ' + name });
+          } else {
+            renamed.push({ ...item });
+          }
+        } else {
+          renamed.push({ ...item });
+        }
+      }
+      return renamed;
+    }
+
+    let renamedItems = renameSetComponents(items);
+    renamedItems.sort((a, b) => a.name.localeCompare(b.name));
+
+    function buildSetMap(arr) {
+      const map = new Map();
+      for (let i = 0; i < arr.length; i++) {
+        const it = arr[i];
+        if (/Set/.test(it.name) && !it.name.includes('Set ') && !it.name.includes('Set(') && !it.name.includes(
+            'Set (') && !it.name.includes('Set  ')) {
+          const key = it.name;
+          const comps = [];
+          for (let j = i + 1; j < arr.length; j++) {
+            const next = arr[j];
+            if (next.name.startsWith(key + ' ')) comps.push(j);
+            else break;
+          }
+          if (comps.length) map.set(key, comps);
+        }
+      }
+      return map;
+    }
+    let setComponents = buildSetMap(renamedItems);
+
+    // ====================================================================
+    // 3. JOGADORES
+    // ====================================================================
+    const DEFAULT_PLAYERS = [
+      { name: 'Vettzn', power: '5.2M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'BiancaUchiha0195', power: '5.5M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Hasdraives123', power: '9.3M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Enzo', power: '3M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Cain', power: '3M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Kazuki', power: '2M', discord: '', inactive: 'não', participation: 0 }
+    ];
+
+    function loadPlayers() {
+      const stored = localStorage.getItem('dragonSoul_players');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          return parsed.map(p => ({
+            ...p,
+            inactive: p.inactive || 'não',
+            participation: p.participation !== undefined ? p.participation : 0
+          }));
+        } catch (e) {}
+      }
+      return [...DEFAULT_PLAYERS];
+    }
+
+    function savePlayers(players) {
+      localStorage.setItem('dragonSoul_players', JSON.stringify(players));
+    }
+    let players = loadPlayers();
+
+    // ====================================================================
+    // 4. AUTENTICAÇÃO
+    // ====================================================================
+    const credentials = {
+      'CoA': 'senh0000',
+      'BiancaUchiha019': 'guicraft',
+      'vettzn': '123456',
+      'Teste': '00000000',
+      'Rapha': '121212'
+    };
+    const ADM_USERS = ['CoA', 'BiancaUchiha019', 'vettzn', 'Rapha'];
+
+    let currentUser = null;
+    let isGuest = false;
+
+    // ====================================================================
+    // 5. ESTADO DA CALCULADORA (por jogador)
+    // ====================================================================
+    function loadPlayerData(username) {
+      const key = 'dragonSoul_calc_' + username;
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        try { return JSON.parse(stored); } catch (e) {}
+      }
+      return { leftItems: [], rightItems: [] };
+    }
+
+    function savePlayerData(username, data) {
+      localStorage.setItem('dragonSoul_calc_' + username, JSON.stringify(data));
+    }
+    const playerData = {};
+    for (const u of Object.keys(credentials)) playerData[u] = loadPlayerData(u);
+
+    const MAX_ITEMS = 9;
+    const dom = {};
+
+    // ====================================================================
+    // 6. REFERÊNCIAS DOM
+    // ====================================================================
+    function initDomRefs() {
+      dom.a = document.getElementById('a');
+      dom.b = document.getElementById('b');
+      dom.L = document.getElementById('L');
+      dom.R = document.getElementById('R');
+      dom.tl = document.getElementById('tl');
+      dom.tr = document.getElementById('tr');
+      dom.totalL = document.getElementById('totalL');
+      dom.totalR = document.getElementById('totalR');
+      dom.diffDisplay = document.getElementById('diffDisplay');
+      dom.res = document.getElementById('res');
+      dom.warnL = document.getElementById('warnL');
+      dom.warnR = document.getElementById('warnR');
+      dom.searchInputL = document.getElementById('searchInputL');
+      dom.searchInputR = document.getElementById('searchInputR');
+      dom.suggestL = document.getElementById('suggestL');
+      dom.suggestR = document.getElementById('suggestR');
+      dom.main = document.getElementById('mainContent');
+      dom.userDisplay = document.getElementById('userDisplay');
+      dom.playersBody = document.getElementById('playersBody');
+      dom.addPlayerArea = document.getElementById('addPlayerArea');
+      dom.guestMsg = document.getElementById('guestMsg');
+      dom.editItemsContainer = document.getElementById('editItemsContainer');
+      dom.storageSize = document.getElementById('storageSize');
+      dom.lastUpdate = document.getElementById('lastUpdate');
+      dom.statPlayers = document.getElementById('statPlayers');
+      dom.statItems = document.getElementById('statItems');
+      dom.statLastUpdate = document.getElementById('statLastUpdate');
+      dom.statStorage = document.getElementById('statStorage');
+      dom.promoOutput = document.getElementById('promoOutput');
+      dom.generatePromoBtn = document.getElementById('generatePromoBtn');
+      dom.copyPromoBtn = document.getElementById('copyPromoBtn');
+      dom.downloadPromoTxtBtn = document.getElementById('downloadPromoTxtBtn');
+      dom.clearPromoBtn = document.getElementById('clearPromoBtn');
+      dom.promoResponsavel = document.getElementById('promoResponsavel');
+      dom.promoIndividuo = document.getElementById('promoIndividuo');
+      dom.promoPatenteAntiga = document.getElementById('promoPatenteAntiga');
+      dom.promoPatenteNova = document.getElementById('promoPatenteNova');
+      dom.promoMotivo = document.getElementById('promoMotivo');
+      dom.sidebar = document.getElementById('sidebar');
+      dom.sidebarToggle = document.getElementById('sidebarToggle');
+      dom.toggleIcon = document.getElementById('toggleIcon');
+      dom.modalOverlay = document.getElementById('modalOverlay');
+      dom.modalTitle = document.getElementById('modalTitle');
+      dom.modalBody = document.getElementById('modalBody');
+      dom.editPlayerName = document.getElementById('editPlayerName');
+      dom.editPlayerPower = document.getElementById('editPlayerPower');
+      dom.editPlayerDiscord = document.getElementById('editPlayerDiscord');
+      dom.editPlayerInactive = document.getElementById('editPlayerInactive');
+      dom.editPlayerParticipation = document.getElementById('editPlayerParticipation');
+      dom.saveEditPlayerBtn = document.getElementById('saveEditPlayerBtn');
+    }
+
+    // ====================================================================
+    // 7. FUNÇÕES DA CALCULADORA
+    // ====================================================================
+    function getCurrentData() { return playerData[currentUser]; }
+
+    function persistCurrentData() { if (currentUser) savePlayerData(currentUser, getCurrentData()); }
+
+    function updateAll() {
+      const data = getCurrentData();
+      const left = data.leftItems,
+        right = data.rightItems;
+      const tl = left.reduce((s, i) => s + renamedItems[i].value, 0);
+      const tr = right.reduce((s, i) => s + renamedItems[i].value, 0);
+      dom.tl.textContent = tl;
+      dom.tr.textContent = tr;
+      dom.totalL.textContent = tl;
+      dom.totalR.textContent = tr;
+      const diff = tr - tl;
+      dom.diffDisplay.textContent = diff;
+      if (diff > 0) dom.res.textContent = 'Vale a pena receber';
+      else if (diff < 0) dom.res.textContent = 'Você está oferecendo mais';
+      else dom.res.textContent = 'Troca justa';
+      renderList('L', left);
+      renderList('R', right);
+      dom.warnL.textContent = left.length >= MAX_ITEMS ? ' (limite atingido)' : '';
+      dom.warnR.textContent = right.length >= MAX_ITEMS ? ' (limite atingido)' : '';
+      persistCurrentData();
+      updateDashboard();
+      updateStorageInfo();
+    }
+
+    function renderList(side, arr) {
+      const ul = side === 'L' ? dom.L : dom.R;
+      ul.innerHTML = '';
+      arr.forEach((idx, pos) => {
+        const it = renamedItems[idx];
+        const li = document.createElement('li');
+        li.innerHTML =
+          `<span>${it.name} - ${it.value}</span><button class="btn btn-sm btn-danger" onclick="removeItem('${side}',${pos})">✕</button>`;
+        ul.appendChild(li);
+      });
+    }
+
+    function addItem(side, idx) {
+      idx = parseInt(idx);
+      const data = getCurrentData();
+      const arr = side === 'L' ? data.leftItems : data.rightItems;
+      if (arr.length >= MAX_ITEMS) { alert('Limite de ' + MAX_ITEMS + ' itens por lado.'); return; }
+      arr.push(idx);
+      updateAll();
+    }
+
+    function removeItem(side, pos) {
+      const data = getCurrentData();
+      const arr = side === 'L' ? data.leftItems : data.rightItems;
+      arr.splice(pos, 1);
+      updateAll();
+    }
+
+    function clearSide(side) {
+      const data = getCurrentData();
+      const arr = side === 'L' ? data.leftItems : data.rightItems;
+      arr.length = 0;
+      updateAll();
+    }
+
+    function addSet(side, setName) {
+      const comps = setComponents.get(setName) || [];
+      if (!comps.length) { alert('Nenhum componente encontrado para ' + setName); return; }
+      const data = getCurrentData();
+      const arr = side === 'L' ? data.leftItems : data.rightItems;
+      let added = 0;
+      for (const idx of comps) {
+        if (arr.length >= MAX_ITEMS) { alert('Limite de ' + MAX_ITEMS + ' itens atingido. Adicionados ' + added +
+            ' itens.'); break; }
+        arr.push(idx);
+        added++;
+      }
+      updateAll();
+    }
+
+    // ====================================================================
+    // 8. PROMOÇÃO (substitui gerador de anúncios)
+    // ====================================================================
+    function generatePromocao() {
+      const responsavel = dom.promoResponsavel.value.trim() || 'Não informado';
+      const individuo = dom.promoIndividuo.value.trim() || 'Não informado';
+      const patenteAntiga = dom.promoPatenteAntiga.value.trim() || 'Não informada';
+      const patenteNova = dom.promoPatenteNova.value.trim() || 'Não informada';
+      const motivo = dom.promoMotivo.value.trim() || 'Motivo não informado.';
+
+      // Data atual formatada
+      const hoje = new Date();
+      const dia = String(hoje.getDate()).padStart(2, '0');
+      const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+      const ano = hoje.getFullYear();
+      const dataStr = `${dia}/${mes}/${ano}`;
+
+      const mensagem =
+        `{PROMOÇÃO} ﻿﻿\n` +
+        `--------------------------------------------------------------\n` +
+        `⇛ Responsável: ${responsavel}\n` +
+        `--------------------------------------------------------------\n` +
+        `⇛ Indivíduo promovido: ${individuo}\n` +
+        `--------------------------------------------------------------\n` +
+        `⇛ Patente antiga: ${patenteAntiga}\n` +
+        `--------------------------------------------------------------\n` +
+        `⇛ Patente nova: ${patenteNova}\n` +
+        `--------------------------------------------------------------\n` +
+        `⇛ Motivo: ${motivo}\n` +
+        `--------------------------------------------------------------\n` +
+        `⇛ Data: ${dataStr}.\n` +
+        `--------------------------------------------------------------`;
+
+      dom.promoOutput.value = mensagem;
+    }
+
+    function copyPromo() {
+      const text = dom.promoOutput.value;
+      if (!text || text === 'A mensagem de promoção aparecerá aqui...') {
+        showToast('Nenhuma promoção gerada ainda.', 'error');
+        return;
+      }
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Promoção copiada!', 'success');
+      }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        showToast('Promoção copiada!', 'success');
+      });
+    }
+
+    function downloadPromoTxt() {
+      const text = dom.promoOutput.value;
+      if (!text || text === 'A mensagem de promoção aparecerá aqui...') {
+        showToast('Nenhuma promoção gerada ainda.', 'error');
+        return;
+      }
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `promocao_${new Date().toISOString().slice(0,10)}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Arquivo .txt baixado!', 'success');
+    }
+
+    function clearPromo() {
+      dom.promoOutput.value = '';
+    }
+
+    // ====================================================================
+    // 9. POPULAR SELECTS E SUGESTÕES
+    // ====================================================================
+    function populateSelects() {
+      dom.a.innerHTML = '';
+      dom.b.innerHTML = '';
+      renamedItems.forEach((it, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.text = it.name + ' (' + it.value + ')';
+        dom.a.add(opt);
+        dom.b.add(opt.cloneNode(true));
+      });
+    }
+
+    function populateSuggestions() {
+      dom.suggestL.innerHTML = '';
+      dom.suggestR.innerHTML = '';
+      for (const [setName, comps] of setComponents) {
+        if (!comps.length) continue;
+        const btnL = document.createElement('button');
+        btnL.className = 'suggest-item';
+        btnL.textContent = setName + ' (' + comps.length + ' itens)';
+        btnL.onclick = () => { addSet('L', setName);
+          toggleSuggest('L'); };
+        dom.suggestL.appendChild(btnL);
+        const btnR = document.createElement('button');
+        btnR.className = 'suggest-item';
+        btnR.textContent = setName + ' (' + comps.length + ' itens)';
+        btnR.onclick = () => { addSet('R', setName);
+          toggleSuggest('R'); };
+        dom.suggestR.appendChild(btnR);
+      }
+    }
+
+    // ====================================================================
+    // 10. BUSCA COM SUGESTÕES (autocomplete)
+    // ====================================================================
+    function setupSearch() {
+      function handleInput(input, side) {
+        const term = input.value.toLowerCase().trim();
+        const list = side === 'L' ? dom.suggestL : dom.suggestR;
+        if (!term.length) {
+          list.classList.remove('show');
+          return;
+        }
+        const matches = [];
+        for (let i = 0; i < renamedItems.length; i++) {
+          const it = renamedItems[i];
+          if (it.name.toLowerCase().includes(term)) {
+            matches.push({ index: i, name: it.name, value: it.value });
+          }
+          if (matches.length >= 15) break;
+        }
+        list.innerHTML = '';
+        if (!matches.length) { list.classList.remove('show'); return; }
+        matches.forEach(m => {
+          const div = document.createElement('button');
+          div.className = 'suggest-item';
+          div.innerHTML = `${m.name} <span style="color:var(--neon-purple);">${m.value}</span>`;
+          div.onclick = () => {
+            addItem(side, m.index);
+            input.value = '';
+            list.classList.remove('show');
+          };
+          list.appendChild(div);
+        });
+        list.classList.add('show');
+      }
+
+      dom.searchInputL.addEventListener('input', () => handleInput(dom.searchInputL, 'L'));
+      dom.searchInputR.addEventListener('input', () => handleInput(dom.searchInputR, 'R'));
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.suggest-wrap')) {
+          dom.suggestL.classList.remove('show');
+          dom.suggestR.classList.remove('show');
+        }
+      });
+    }
+
+    // ====================================================================
+    // 11. TOGGLE SUGESTÕES DE CONJUNTOS
+    // ====================================================================
+    function toggleSuggest(side) {
+      const dropdown = side === 'L' ? dom.suggestL : dom.suggestR;
+      dropdown.classList.toggle('show');
+    }
+
+    // ====================================================================
+    // 12. LISTA DE JOGADORES
+    // ====================================================================
+    function renderPlayers() {
+      const tbody = dom.playersBody;
+      tbody.innerHTML = '';
+      players.forEach((p, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><strong>${p.name}</strong></td>
+          <td class="power">${p.power}</td>
+          <td>${p.discord ? `<a href="${p.discord}" target="_blank" class="discord-link">${p.discord}</a>` : '—'}</td>
+          <td>${p.inactive || 'não'}</td>
+          <td>${p.participation !== undefined ? p.participation : 0}</td>
+          <td class="player-actions adm-only" style="display:none;">
+            <button onclick="openEditModal(${index})"><i class="fas fa-edit"></i></button>
+            <button class="del-btn" onclick="deletePlayer(${index})"><i class="fas fa-trash"></i></button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      const isAdm = !isGuest && ADM_USERS.includes(currentUser);
+      document.querySelectorAll('.styled-table .adm-only').forEach(el => el.style.display = isAdm ? '' : 'none');
+      dom.addPlayerArea.style.display = isAdm ? 'flex' : 'none';
+      dom.guestMsg.style.display = isGuest ? 'block' : 'none';
+      updateDashboard();
+      // Atualizar datalist de sugestões de jogadores na promoção
+      updatePlayerSuggestions();
+    }
+
+    function updatePlayerSuggestions() {
+      const datalist = document.getElementById('playerSuggestions');
+      if (!datalist) return;
+      datalist.innerHTML = '';
+      players.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.name;
+        datalist.appendChild(opt);
+      });
+    }
+
+    function addPlayer() {
+      const name = document.getElementById('newPlayerName').value.trim();
+      const power = document.getElementById('newPlayerPower').value.trim();
+      const discord = document.getElementById('newPlayerDiscord').value.trim();
+      const inactive = document.getElementById('newPlayerInactive').value;
+      const participation = parseInt(document.getElementById('newPlayerParticipation').value) || 0;
+      if (!name || !power) { showToast('Nome e poder são obrigatórios.', 'error'); return; }
+      players.push({ name, power, discord, inactive, participation });
+      savePlayers(players);
+      renderPlayers();
+      document.getElementById('newPlayerName').value = '';
+      document.getElementById('newPlayerPower').value = '';
+      document.getElementById('newPlayerDiscord').value = '';
+      document.getElementById('newPlayerInactive').value = 'não';
+      document.getElementById('newPlayerParticipation').value = '0';
+      showToast('Jogador adicionado!', 'success');
+    }
+
+    let editIndex = null;
+
+    function openEditModal(index) {
+      editIndex = index;
+      const p = players[index];
+      dom.editPlayerName.value = p.name;
+      dom.editPlayerPower.value = p.power;
+      dom.editPlayerDiscord.value = p.discord || '';
+      dom.editPlayerInactive.value = p.inactive || 'não';
+      dom.editPlayerParticipation.value = p.participation !== undefined ? p.participation : 0;
+      dom.modalTitle.textContent = 'Editar Jogador';
+      dom.modalOverlay.classList.add('active');
+    }
+
+    function closeModal() {
+      dom.modalOverlay.classList.remove('active');
+      editIndex = null;
+    }
+
+    function saveEditPlayer() {
+      if (editIndex === null) return;
+      const name = dom.editPlayerName.value.trim();
+      const power = dom.editPlayerPower.value.trim();
+      const discord = dom.editPlayerDiscord.value.trim();
+      const inactive = dom.editPlayerInactive.value;
+      const participation = parseInt(dom.editPlayerParticipation.value) || 0;
+      if (!name || !power) { showToast('Nome e poder são obrigatórios.', 'error'); return; }
+      players[editIndex] = { name, power, discord, inactive, participation };
+      savePlayers(players);
+      renderPlayers();
+      closeModal();
+      showToast('Jogador atualizado!', 'success');
+    }
+
+    function deletePlayer(index) {
+      if (!confirm(`Remover jogador "${players[index].name}"?`)) return;
+      players.splice(index, 1);
+      savePlayers(players);
+      renderPlayers();
+      showToast('Jogador removido.', 'success');
+    }
+
+    // ====================================================================
+    // 13. EDIÇÃO DE ITENS (ADM)
+    // ====================================================================
+    function renderEditItems() {
+      const container = dom.editItemsContainer;
+      container.innerHTML = '';
+      renamedItems.forEach((it, idx) => {
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `<span>${it.name}</span>
+          <input type="number" id="itemVal_${idx}" value="${it.value}" min="0" step="1">
+          <button class="btn btn-sm btn-primary" onclick="saveItemValue(${idx})">Salvar</button>
+          <button class="btn btn-sm btn-secondary" onclick="resetItemValue(${idx})">↺</button>`;
+        container.appendChild(row);
+      });
+    }
+
+    function saveItemValue(idx) {
+      const input = document.getElementById('itemVal_' + idx);
+      const val = parseInt(input.value);
+      if (isNaN(val) || val < 0) { showToast('Valor inválido.', 'error'); return; }
+      renamedItems[idx].value = val;
+      const origName = renamedItems[idx].name;
+      const origIdx = DEFAULT_ITEMS.findIndex(d => d.name === origName);
+      if (origIdx !== -1) { items[origIdx].value = val;
+        saveItems(items); }
+      populateSelects();
+      updateAll();
+      renderEditItems();
+      showToast('Valor atualizado!', 'success');
+    }
+
+    function resetItemValue(idx) {
+      const origName = renamedItems[idx].name;
+      const def = DEFAULT_ITEMS.find(d => d.name === origName);
+      if (def) {
+        const origIdx = items.findIndex(d => d.name === origName);
+        if (origIdx !== -1) { items[origIdx].value = def.value;
+          saveItems(items); }
+        renamedItems[idx].value = def.value;
+        populateSelects();
+        updateAll();
+        renderEditItems();
+        showToast('Valor restaurado.', 'success');
+      }
+    }
+
+    function resetAllItems() {
+      if (!confirm('Restaurar todos os valores para o padrão?')) return;
+      items = DEFAULT_ITEMS.map(i => ({ ...i }));
+      saveItems(items);
+      renamedItems = renameSetComponents(items);
+      renamedItems.sort((a, b) => a.name.localeCompare(b.name));
+      setComponents = buildSetMap(renamedItems);
+      populateSelects();
+      populateSuggestions();
+      updateAll();
+      renderEditItems();
+      showToast('Todos os valores restaurados.', 'success');
+    }
+
+    // ====================================================================
+    // 14. DASHBOARD E INFORMAÇÕES DE SISTEMA
+    // ====================================================================
+    function updateDashboard() {
+      dom.statPlayers.textContent = players.length;
+      dom.statItems.textContent = renamedItems.length;
+      dom.statLastUpdate.textContent = localStorage.getItem('dragonSoul_lastUpdate') || 'Nunca';
+      const size = new Blob([JSON.stringify(localStorage)]).size;
+      dom.statStorage.textContent = (size / 1024).toFixed(1) + ' KB';
+      dom.storageSize.textContent = (size / 1024).toFixed(1) + ' KB';
+      dom.lastUpdate.textContent = localStorage.getItem('dragonSoul_lastUpdate') || 'Nunca';
+    }
+
+    function updateStorageInfo() {
+      const size = new Blob([JSON.stringify(localStorage)]).size;
+      dom.storageSize.textContent = (size / 1024).toFixed(1) + ' KB';
+      dom.statStorage.textContent = (size / 1024).toFixed(1) + ' KB';
+    }
+
+    function setLastUpdate() {
+      const now = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+      localStorage.setItem('dragonSoul_lastUpdate', now);
+      updateDashboard();
+    }
+
+    // ====================================================================
+    // 15. SISTEMA DE COMPARTILHAMENTO E BACKUP
+    // ====================================================================
+    function getFullData() {
+      return {
+        players: players,
+        items: items.map(i => ({ name: i.name, value: i.value })),
+        lastUpdate: localStorage.getItem('dragonSoul_lastUpdate') || new Date().toISOString()
+      };
+    }
+
+    function exportFullData() {
+      const data = getFullData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'C.O.A_export_' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      setLastUpdate();
+      showToast('Lista exportada!', 'success');
+    }
+
+    function importFullData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.players || !data.items) throw new Error('Estrutura inválida');
+          if (!Array.isArray(data.players) || !Array.isArray(data.items)) throw new Error('Dados inválidos');
+          if (!confirm('Importar dados? Isso substituirá jogadores e valores de itens.')) return;
+          players = data.players.map(p => ({ ...p, inactive: p.inactive || 'não', participation: p.participation !==
+              undefined ? p.participation : 0 }));
+          savePlayers(players);
+          const newItems = DEFAULT_ITEMS.map(def => {
+            const found = data.items.find(it => it.name === def.name);
+            return found ? { ...def, value: found.value } : { ...def };
+          });
+          items = newItems;
+          saveItems(items);
+          renamedItems = renameSetComponents(items);
+          renamedItems.sort((a, b) => a.name.localeCompare(b.name));
+          setComponents = buildSetMap(renamedItems);
+          populateSelects();
+          populateSuggestions();
+          updateAll();
+          renderPlayers();
+          renderEditItems();
+          setLastUpdate();
+          showToast('Importação concluída!', 'success');
+        } catch (err) {
+          showToast('Erro ao importar: ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function copyShareCode() {
+      const data = getFullData();
+      const json = JSON.stringify(data);
+      const base64 = btoa(unescape(encodeURIComponent(json)));
+      navigator.clipboard.writeText(base64).then(() => {
+        showToast('Código copiado!', 'success');
+      }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = base64;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        showToast('Código copiado!', 'success');
+      });
+    }
+
+    function importShareCode() {
+      const input = document.getElementById('shareCodeInput');
+      const code = input.value.trim();
+      if (!code) { showToast('Cole um código Base64 no campo acima.', 'error'); return; }
+      try {
+        const json = decodeURIComponent(escape(atob(code)));
+        const data = JSON.parse(json);
+        if (!data.players || !data.items) throw new Error('Estrutura inválida');
+        if (!confirm('Importar dados do código? Isso substituirá jogadores e valores de itens.')) return;
+        players = data.players.map(p => ({ ...p, inactive: p.inactive || 'não', participation: p.participation !==
+            undefined ? p.participation : 0 }));
+        savePlayers(players);
+        const newItems = DEFAULT_ITEMS.map(def => {
+          const found = data.items.find(it => it.name === def.name);
+          return found ? { ...def, value: found.value } : { ...def };
+        });
+        items = newItems;
+        saveItems(items);
+        renamedItems = renameSetComponents(items);
+        renamedItems.sort((a, b) => a.name.localeCompare(b.name));
+        setComponents = buildSetMap(renamedItems);
+        populateSelects();
+        populateSuggestions();
+        updateAll();
+        renderPlayers();
+        renderEditItems();
+        setLastUpdate();
+        input.value = '';
+        showToast('Código importado!', 'success');
+      } catch (err) {
+        showToast('Erro ao importar código: ' + err.message, 'error');
+      }
+    }
+
+    function exportBackup() {
+      const data = getFullData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'C.O.A_backup_' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      setLastUpdate();
+      showToast('Backup exportado!', 'success');
+    }
+
+    function restoreBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.players || !data.items) throw new Error('Estrutura inválida');
+          if (!confirm('Restaurar backup? Isso substituirá todos os dados atuais.')) return;
+          players = data.players.map(p => ({ ...p, inactive: p.inactive || 'não', participation: p.participation !==
+              undefined ? p.participation : 0 }));
+          savePlayers(players);
+          const newItems = DEFAULT_ITEMS.map(def => {
+            const found = data.items.find(it => it.name === def.name);
+            return found ? { ...def, value: found.value } : { ...def };
+          });
+          items = newItems;
+          saveItems(items);
+          renamedItems = renameSetComponents(items);
+          renamedItems.sort((a, b) => a.name.localeCompare(b.name));
+          setComponents = buildSetMap(renamedItems);
+          populateSelects();
+          populateSuggestions();
+          updateAll();
+          renderPlayers();
+          renderEditItems();
+          setLastUpdate();
+          showToast('Backup restaurado!', 'success');
+        } catch (err) {
+          showToast('Erro ao restaurar backup: ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function clearAllStorage() {
+      if (!confirm('⚠️ Tem certeza que deseja limpar todo o LocalStorage? Esta ação é irreversível.')) return;
+      if (!confirm('Última confirmação: todos os dados serão apagados.')) return;
+      localStorage.clear();
+      location.reload();
+    }
+
+    // ====================================================================
+    // 16. TOAST
+    // ====================================================================
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const icon = type === 'success' ? 'fa-check-circle' :
+        type === 'error' ? 'fa-circle-exclamation' :
+        'fa-circle-info';
+      el.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(20px)';
+        setTimeout(() => el.remove(), 400);
+      }, 3500);
+    }
+
+    // ====================================================================
+    // 17. NAVEGAÇÃO E SIDEBAR TOGGLE
+    // ====================================================================
+    const pageTitles = {
+      dashboard: { title: '📊 Dashboard', sub: 'Visão geral' },
+      calculadora: { title: '🧮 Calculadora', sub: 'Troca de itens' },
+      jogadores: { title: '👥 Jogadores', sub: 'Lista e gerenciamento' },
+      promocao: { title: '⭐ Promoção', sub: 'Gerar promoção' },
+      'edit-items': { title: '⚙️ Editar Itens', sub: 'Valores dos itens' },
+      sistema: { title: '🔧 Sistema', sub: 'Gerenciamento e backup' },
+    };
+
+    function navigateTo(page) {
+      document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelector(`.sidebar-nav .nav-item[data-page="${page}"]`).classList.add('active');
+
+      const cfg = pageTitles[page] || { title: page, sub: '' };
+      document.getElementById('pageTitle').textContent = cfg.title;
+      document.getElementById('pageSub').textContent = cfg.sub;
+
+      if (page === 'edit-items') renderEditItems();
+      if (page === 'jogadores') renderPlayers();
+      if (page === 'promocao') {
+        // Preencher responsável com o usuário atual se for ADM
+        if (currentUser && ADM_USERS.includes(currentUser)) {
+          dom.promoResponsavel.value = currentUser;
+        }
+        updatePlayerSuggestions();
+      }
+      if (page === 'dashboard' || page === 'sistema') { updateDashboard();
+        updateStorageInfo(); }
+
+      if (window.innerWidth <= 768 && dom.sidebar.classList.contains('expanded')) {
+        toggleSidebar();
+      }
+    }
+
+    function toggleSidebar() {
+      const expanded = dom.sidebar.classList.toggle('expanded');
+      dom.main.classList.toggle('expanded', expanded);
+      dom.toggleIcon.className = expanded ? 'fas fa-chevron-left' : 'fas fa-chevron-right';
+      dom.sidebarToggle.querySelector('span').textContent = expanded ? 'Recolher' : 'Expandir';
+    }
+
+    // ====================================================================
+    // 18. LOGIN / LOGOUT
+    // ====================================================================
+    function doLogin() {
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const errorEl = document.getElementById('loginError');
+      if (!user || !pass) { errorEl.textContent = 'Preencha usuário e senha.'; return; }
+      if (credentials[user] && credentials[user] === pass) {
+        currentUser = user;
+        isGuest = (user === 'Teste');
+        errorEl.textContent = '';
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'block';
+        document.getElementById('userDisplay').innerHTML = `Jogador: <strong>${user}</strong>${isGuest ? ' (Convidado)' : ''}`;
+        const isAdm = !isGuest && ADM_USERS.includes(user);
+        document.querySelectorAll('.adm-only').forEach(el => el.style.display = isAdm ? '' : 'none');
+        if (!playerData[user]) playerData[user] = { leftItems: [], rightItems: [] };
+        updateAll();
+        renderPlayers();
+        if (isAdm) renderEditItems();
+        navigateTo('dashboard');
+        setLastUpdate();
+        showToast(`Bem-vindo, ${user}!`, 'success');
+      } else {
+        errorEl.textContent = 'Usuário ou senha inválidos.';
+      }
+    }
+
+    function doLogout() {
+      if (currentUser) savePlayerData(currentUser, getCurrentData());
+      currentUser = null;
+      isGuest = false;
+      document.getElementById('appContainer').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'block';
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+      document.getElementById('loginError').textContent = '';
+    }
+
+    // ====================================================================
+    // 19. INICIALIZAÇÃO
+    // ====================================================================
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!document.getElementById('loginScreen')) {
+        const loginDiv = document.createElement('div');
+        loginDiv.id = 'loginScreen';
+        loginDiv.innerHTML = `
+          <h1>C.O.A</h1>
+          <div class="field"><label>Usuário</label><input type="text" id="username" placeholder="Digite seu usuário"></div>
+          <div class="field"><label>Senha</label><input type="password" id="password" placeholder="Digite sua senha"></div>
+          <button class="btn btn-primary" id="loginBtn">Entrar</button>
+          <div id="loginError" style="color:#F87171;margin-top:12px;"></div>
+        `;
+        loginDiv.style.cssText =
+          'background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:40px 48px;max-width:400px;width:100%;margin:auto;text-align:center;';
+        document.body.prepend(loginDiv);
+      }
+
+      initDomRefs();
+
+      const appContainer = document.getElementById('appContainer');
+      if (!appContainer) {
+        const mainContent = document.querySelector('.main');
+        const wrapper = document.createElement('div');
+        wrapper.id = 'appContainer';
+        wrapper.style.display = 'none';
+        wrapper.style.width = '100%';
+        wrapper.style.height = '100vh';
+        wrapper.style.overflow = 'hidden';
+        document.body.prepend(wrapper);
+        wrapper.appendChild(mainContent);
+      }
+
+      populateSelects();
+      populateSuggestions();
+      setupSearch();
+
+      // Eventos
+      document.getElementById('loginBtn').addEventListener('click', doLogin);
+      document.getElementById('logoutBtn').addEventListener('click', doLogout);
+      document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
+      dom.sidebarToggle.addEventListener('click', toggleSidebar);
+      dom.generatePromoBtn.addEventListener('click', generatePromocao);
+      dom.copyPromoBtn.addEventListener('click', copyPromo);
+      dom.downloadPromoTxtBtn.addEventListener('click', downloadPromoTxt);
+      dom.clearPromoBtn.addEventListener('click', clearPromo);
+      dom.saveEditPlayerBtn.addEventListener('click', saveEditPlayer);
+
+      document.getElementById('username').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+      document.getElementById('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+
+      dom.modalOverlay.addEventListener('click', (e) => { if (e.target === dom.modalOverlay) closeModal(); });
+
+      document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          navigateTo(el.dataset.page);
+        });
+      });
+
+      document.getElementById('loginScreen').style.display = 'block';
+      document.getElementById('appContainer').style.display = 'none';
+
+      updateDashboard();
+      renderPlayers();
+    });
+
+    // Expor funções globais
+    window.addItem = addItem;
+    window.removeItem = removeItem;
+    window.clearSide = clearSide;
+    window.addSet = addSet;
+    window.toggleSuggest = toggleSuggest;
+    window.openEditModal = openEditModal;
+    window.closeModal = closeModal;
+    window.saveEditPlayer = saveEditPlayer;
+    window.deletePlayer = deletePlayer;
+    window.saveItemValue = saveItemValue;
+    window.resetItemValue = resetItemValue;
+    window.resetAllItems = resetAllItems;
+    window.navigateTo = navigateTo;
+    window.exportFullData = exportFullData;
+    window.importFullData = importFullData;
+    window.copyShareCode = copyShareCode;
+    window.importShareCode = importShareCode;
+    window.exportBackup = exportBackup;
+    window.restoreBackup = restoreBackup;
+    window.clearAllStorage = clearAllStorage;
+    window.generatePromocao = generatePromocao;
+    window.copyPromo = copyPromo;
+    window.downloadPromoTxt = downloadPromoTxt;
+    window.clearPromo = clearPromo;
+    window.toggleSidebar = toggleSidebar;
+    window.showToast = showToast;
+  </script>
+
+  <!-- ===== SDKs do Firebase via CDN (Web Modules) – integração em nuvem ===== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // Suas credenciais geradas
+    const firebaseConfig = {
+      apiKey: "AIzaSyDpGp3YpTUVvhMmq0ReKZmD4NC8IWLyuyE",
+      authDomain: "sisteam-coa.firebaseapp.com",
+      databaseURL: "https://sisteam-coa-default-rtdb.firebaseio.com",
+      projectId: "sisteam-coa",
+      storageBucket: "sisteam-coa.firebasestorage.app",
+      messagingSenderId: "1062829860860",
+      appId: "1:1062829860860:web:b4480e210bf6dbb1627479",
+      measurementId: "G-NC2R15HENS"
+    };
+
+    // Inicializa o aplicativo e o Banco Realtime
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Função para salvar um registro no banco (exposta globalmente)
+    window.salvarDados = function(dados) {
+      const listaRef = ref(db, 'registros');
+      const novoRegistroRef = push(listaRef);
+      set(novoRegistroRef, dados)
+        .then(() => console.log("Dados salvos com sucesso no banco!"))
+        .catch((error) => console.error("Erro ao salvar:", error));
+    };
+
+    // Escutador em tempo real (atualiza a tela quando entra dado novo)
+    const listaRef = ref(db, 'registros');
+    onValue(listaRef, (snapshot) => {
+      const data = snapshot.val();
+      console.log("Dados atualizados do banco:", data);
+      // Aqui você pode chamar funções para atualizar a interface, se desejar
+    });
+  </script>
+
+</body>
+</html>
