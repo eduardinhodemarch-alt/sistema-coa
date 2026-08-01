@@ -958,6 +958,13 @@
     <button class="btn btn-primary" id="loginBtn">Entrar</button>
     <div id="loginError" style="color:#F87171;margin-top:12px;"></div>
     <div class="mobile-warning">Caso o sistema falhe visualmente no Mobile, coloque em Modo DESKTOP.</div>
+      <!-- ⬇️ NOVO BOTÃO DE CADASTRO ⬇️ -->
+  <button class="btn btn-secondary" id="registerBtn" style="margin-top:8px; width:100%; justify-content:center;">
+    <i class="fas fa-user-plus"></i> Cadastrar novo usuário
+  </button>
+
+  <div class="mobile-warning">Caso o sistema falhe visualmente no Mobile, coloque em Modo DESKTOP.</div>
+
   </div>
 
   <!-- ===== APP (oculto até logar) ===== -->
@@ -2462,138 +2469,196 @@
     // ====================================================================
     // 18. LOGIN / LOGOUT
     // ====================================================================
-    function doLogin() {
-      const user = document.getElementById('username').value.trim();
-      const pass = document.getElementById('password').value.trim();
-      const errorEl = document.getElementById('loginError');
-      if (!user || !pass) { errorEl.textContent = 'Preencha usuário e senha.'; return; }
-      if (credentials[user] && credentials[user] === pass) {
-        currentUser = user;
-        isGuest = (user === 'Teste');
-        errorEl.textContent = '';
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('appContainer').style.display = 'block';
-        document.getElementById('userDisplay').innerHTML = `Jogador: <strong>${user}</strong>${isGuest ? ' (Convidado)' : ''}`;
-        const isAdm = !isGuest && ADM_USERS.includes(user);
-        document.querySelectorAll('.adm-only').forEach(el => el.style.display = isAdm ? '' : 'none');
-        if (!playerData[user]) playerData[user] = { leftItems: [], rightItems: [] };
-        updateAll();
-        renderPlayers();
-        if (isAdm) renderEditItems();
-        navigateTo('dashboard');
-        setLastUpdate();
-        showToast(`Bem-vindo, ${user}!`, 'success');
-      } else {
-        errorEl.textContent = 'Usuário ou senha inválidos.';
-      }
-    }
+    const savedCreds = JSON.parse(localStorage.getItem('dragonSoul_credentials') || '{}');
+Object.assign(credentials, savedCreds);
 
-    function doLogout() {
-      if (currentUser) savePlayerData(currentUser, getCurrentData());
-      currentUser = null;
-      isGuest = false;
-      document.getElementById('appContainer').style.display = 'none';
-      document.getElementById('loginScreen').style.display = 'block';
-      document.getElementById('username').value = '';
-      document.getElementById('password').value = '';
-      document.getElementById('loginError').textContent = '';
-    }
+// ... (todo o resto do código: estado da calculadora, DOM refs, funções da calculadora, promoção, jogadores, etc.) ...
 
-    // ====================================================================
-    // 19. INICIALIZAÇÃO
-    // ====================================================================
-    document.addEventListener('DOMContentLoaded', function() {
-      if (!document.getElementById('loginScreen')) {
-        const loginDiv = document.createElement('div');
-        loginDiv.id = 'loginScreen';
-        loginDiv.innerHTML = `
-          <h1>C.O.A</h1>
-          <div class="field"><label>Usuário</label><input type="text" id="username" placeholder="Digite seu usuário"></div>
-          <div class="field"><label>Senha</label><input type="password" id="password" placeholder="Digite sua senha"></div>
-          <button class="btn btn-primary" id="loginBtn">Entrar</button>
-          <div id="loginError" style="color:#F87171;margin-top:12px;"></div>
-        `;
-        loginDiv.style.cssText =
-          'background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:40px 48px;max-width:400px;width:100%;margin:auto;text-align:center;';
-        document.body.prepend(loginDiv);
-      }
+// ====================================================================
+// 18. LOGIN / LOGOUT / CADASTRO (MODIFICADO)
+// ====================================================================
+function doLogin() {
+  const user = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value.trim();
+  const errorEl = document.getElementById('loginError');
+  if (!user || !pass) { errorEl.textContent = 'Preencha usuário e senha.'; return; }
+  if (credentials[user] && credentials[user] === pass) {
+    currentUser = user;
+    isGuest = (user === 'Teste');
+    errorEl.textContent = '';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appContainer').style.display = 'block';
+    document.getElementById('userDisplay').innerHTML = `Jogador: <strong>${user}</strong>${isGuest ? ' (Convidado)' : ''}`;
+    const isAdm = !isGuest && ADM_USERS.includes(user);
+    document.querySelectorAll('.adm-only').forEach(el => el.style.display = isAdm ? '' : 'none');
+    if (!playerData[user]) playerData[user] = { leftItems: [], rightItems: [] };
+    updateAll();
+    renderPlayers();
+    if (isAdm) renderEditItems();
+    navigateTo('dashboard');
+    setLastUpdate();
+    showToast(`Bem-vindo, ${user}!`, 'success');
+  } else {
+    errorEl.textContent = 'Usuário ou senha inválidos.';
+  }
+}
 
-      initDomRefs();
+function doLogout() {
+  if (currentUser) savePlayerData(currentUser, getCurrentData());
+  currentUser = null;
+  isGuest = false;
+  document.getElementById('appContainer').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'block';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+  document.getElementById('loginError').textContent = '';
+}
 
-      const appContainer = document.getElementById('appContainer');
-      if (!appContainer) {
-        const mainContent = document.querySelector('.main');
-        const wrapper = document.createElement('div');
-        wrapper.id = 'appContainer';
-        wrapper.style.display = 'none';
-        wrapper.style.width = '100%';
-        wrapper.style.height = '100vh';
-        wrapper.style.overflow = 'hidden';
-        document.body.prepend(wrapper);
-        wrapper.appendChild(mainContent);
-      }
+// ===== NOVA FUNÇÃO DE CADASTRO =====
+function doRegister() {
+  const user = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value.trim();
+  const errorEl = document.getElementById('loginError');
 
-      populateSelects();
-      populateSuggestions();
-      setupSearch();
+  if (!user || !pass) {
+    errorEl.style.color = '#F87171';
+    errorEl.textContent = 'Preencha usuário e senha.';
+    return;
+  }
 
-      // Eventos
-      document.getElementById('loginBtn').addEventListener('click', doLogin);
-      document.getElementById('logoutBtn').addEventListener('click', doLogout);
-      document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
-      dom.sidebarToggle.addEventListener('click', toggleSidebar);
-      dom.generatePromoBtn.addEventListener('click', generatePromocao);
-      dom.copyPromoBtn.addEventListener('click', copyPromo);
-      dom.downloadPromoTxtBtn.addEventListener('click', downloadPromoTxt);
-      dom.clearPromoBtn.addEventListener('click', clearPromo);
-      dom.saveEditPlayerBtn.addEventListener('click', saveEditPlayer);
+  // Verifica se já existe (em memória ou localStorage)
+  const saved = JSON.parse(localStorage.getItem('dragonSoul_credentials') || '{}');
+  if (saved[user] || credentials[user]) {
+    errorEl.style.color = '#F87171';
+    errorEl.textContent = 'Usuário já existe. Escolha outro nome.';
+    return;
+  }
 
-      document.getElementById('username').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
-      document.getElementById('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+  // Adiciona ao objeto em memória e salva no localStorage
+  credentials[user] = pass;
+  saved[user] = pass;
+  localStorage.setItem('dragonSoul_credentials', JSON.stringify(saved));
 
-      dom.modalOverlay.addEventListener('click', (e) => { if (e.target === dom.modalOverlay) closeModal(); });
-
-      document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
-        el.addEventListener('click', (e) => {
-          e.preventDefault();
-          navigateTo(el.dataset.page);
-        });
-      });
-
-      document.getElementById('loginScreen').style.display = 'block';
-      document.getElementById('appContainer').style.display = 'none';
-
-      updateDashboard();
-      renderPlayers();
+  // (Opcional) Salva no Firebase, se disponível
+  if (window.salvarDados) {
+    window.salvarDados({
+      tipo: 'usuario',
+      usuario: user,
+      senha: pass,
+      timestamp: new Date().toISOString()
     });
+  }
 
-    // Expor funções globais
-    window.addItem = addItem;
-    window.removeItem = removeItem;
-    window.clearSide = clearSide;
-    window.addSet = addSet;
-    window.toggleSuggest = toggleSuggest;
-    window.openEditModal = openEditModal;
-    window.closeModal = closeModal;
-    window.saveEditPlayer = saveEditPlayer;
-    window.deletePlayer = deletePlayer;
-    window.saveItemValue = saveItemValue;
-    window.resetItemValue = resetItemValue;
-    window.resetAllItems = resetAllItems;
-    window.navigateTo = navigateTo;
-    window.exportFullData = exportFullData;
-    window.importFullData = importFullData;
-    window.copyShareCode = copyShareCode;
-    window.importShareCode = importShareCode;
-    window.exportBackup = exportBackup;
-    window.restoreBackup = restoreBackup;
-    window.clearAllStorage = clearAllStorage;
-    window.generatePromocao = generatePromocao;
-    window.copyPromo = copyPromo;
-    window.downloadPromoTxt = downloadPromoTxt;
-    window.clearPromo = clearPromo;
-    window.toggleSidebar = toggleSidebar;
-    window.showToast = showToast;
+  errorEl.style.color = '#34D399';
+  errorEl.textContent = 'Usuário cadastrado com sucesso! Faça login.';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+}
+
+// ====================================================================
+// 19. INICIALIZAÇÃO (MODIFICADO para incluir botão de cadastro)
+// ====================================================================
+document.addEventListener('DOMContentLoaded', function() {
+  // Se a tela de login não existir no HTML, cria uma com o botão de cadastro
+  if (!document.getElementById('loginScreen')) {
+    const loginDiv = document.createElement('div');
+    loginDiv.id = 'loginScreen';
+    loginDiv.innerHTML = `
+      <h1>C.O.A</h1>
+      <div class="field"><label>Usuário</label><input type="text" id="username" placeholder="Digite seu usuário"></div>
+      <div class="field"><label>Senha</label><input type="password" id="password" placeholder="Digite sua senha"></div>
+      <button class="btn btn-primary" id="loginBtn">Entrar</button>
+      <div id="loginError" style="color:#F87171;margin-top:12px;"></div>
+      <button class="btn btn-secondary" id="registerBtn" style="margin-top:8px; width:100%; justify-content:center;">
+        <i class="fas fa-user-plus"></i> Cadastrar novo usuário
+      </button>
+      <div class="mobile-warning">Caso o sistema falhe visualmente no Mobile, coloque em Modo DESKTOP.</div>
+    `;
+    loginDiv.style.cssText =
+      'background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:40px 48px;max-width:400px;width:100%;margin:auto;text-align:center;';
+    document.body.prepend(loginDiv);
+  }
+
+  initDomRefs();
+
+  const appContainer = document.getElementById('appContainer');
+  if (!appContainer) {
+    const mainContent = document.querySelector('.main');
+    const wrapper = document.createElement('div');
+    wrapper.id = 'appContainer';
+    wrapper.style.display = 'none';
+    wrapper.style.width = '100%';
+    wrapper.style.height = '100vh';
+    wrapper.style.overflow = 'hidden';
+    document.body.prepend(wrapper);
+    wrapper.appendChild(mainContent);
+  }
+
+  populateSelects();
+  populateSuggestions();
+  setupSearch();
+
+  // Eventos
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+  document.getElementById('logoutBtn').addEventListener('click', doLogout);
+  document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
+  dom.sidebarToggle.addEventListener('click', toggleSidebar);
+  dom.generatePromoBtn.addEventListener('click', generatePromocao);
+  dom.copyPromoBtn.addEventListener('click', copyPromo);
+  dom.downloadPromoTxtBtn.addEventListener('click', downloadPromoTxt);
+  dom.clearPromoBtn.addEventListener('click', clearPromo);
+  dom.saveEditPlayerBtn.addEventListener('click', saveEditPlayer);
+
+  // 🔥 Evento do botão de cadastro (novo)
+  document.getElementById('registerBtn').addEventListener('click', doRegister);
+
+  document.getElementById('username').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+
+  dom.modalOverlay.addEventListener('click', (e) => { if (e.target === dom.modalOverlay) closeModal(); });
+
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigateTo(el.dataset.page);
+    });
+  });
+
+  document.getElementById('loginScreen').style.display = 'block';
+  document.getElementById('appContainer').style.display = 'none';
+
+  updateDashboard();
+  renderPlayers();
+});
+
+// Expor funções globais (mantido igual)
+window.addItem = addItem;
+window.removeItem = removeItem;
+window.clearSide = clearSide;
+window.addSet = addSet;
+window.toggleSuggest = toggleSuggest;
+window.openEditModal = openEditModal;
+window.closeModal = closeModal;
+window.saveEditPlayer = saveEditPlayer;
+window.deletePlayer = deletePlayer;
+window.saveItemValue = saveItemValue;
+window.resetItemValue = resetItemValue;
+window.resetAllItems = resetAllItems;
+window.navigateTo = navigateTo;
+window.exportFullData = exportFullData;
+window.importFullData = importFullData;
+window.copyShareCode = copyShareCode;
+window.importShareCode = importShareCode;
+window.exportBackup = exportBackup;
+window.restoreBackup = restoreBackup;
+window.clearAllStorage = clearAllStorage;
+window.generatePromocao = generatePromocao;
+window.copyPromo = copyPromo;
+window.downloadPromoTxt = downloadPromoTxt;
+window.clearPromo = clearPromo;
+window.toggleSidebar = toggleSidebar;
+window.showToast = showToast;
+
   </script>
 
   <!-- ===== SDKs do Firebase via CDN (Web Modules) – integração em nuvem ===== -->
