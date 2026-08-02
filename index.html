@@ -6,12 +6,8 @@
   <title>C.O.A – Trade System</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-  <!-- SDK do Supabase via CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
-    /* ===== RESET E BASE (mesmo do original) ===== */
+    /* ===== RESET E BASE ===== */
     *,
     *::before,
     *::after {
@@ -253,7 +249,7 @@
       -webkit-text-fill-color: var(--text-muted);
     }
 
-    /* ===== SIDEBAR USER ===== */
+    /* ===== SIDEBAR USER (Jogador / Sair) ===== */
     .sidebar-user {
       width: 100%;
       padding: 0 16px;
@@ -950,9 +946,6 @@
       .main.expanded { margin-left: 160px; }
       .topbar-right .badge { font-size: 10px; padding: 4px 10px; }
     }
-
-    /* ===== ADM-ONLY (oculto por padrão) ===== */
-    .adm-only { display: none !important; }
   </style>
 </head>
 <body>
@@ -973,271 +966,271 @@
   <!-- ===== APP (oculto até logar) ===== -->
   <div id="appContainer" style="display:none;width:100%;height:100vh;overflow:hidden;">
 
-    <!-- ===== SIDEBAR ===== -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-logo" id="sidebarLogo">
-        <div class="logo-icon">C</div>
-        <div style="display:flex;flex-direction:column;">
-          <span class="logo-text">C.O.A</span>
-          <span class="logo-sub">Cyber Open-source Analyzer</span>
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo" id="sidebarLogo">
+      <div class="logo-icon">C</div>
+      <div style="display:flex;flex-direction:column;">
+        <span class="logo-text">C.O.A</span>
+        <span class="logo-sub">Cyber Open-source Analyzer</span>
+      </div>
+    </div>
+    <div class="sidebar-user" id="sidebarUser">
+      <span class="sidebar-user-name" id="userDisplay">Jogador: <strong>-</strong></span>
+      <button class="btn btn-danger btn-sm" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" data-page="dashboard" id="navDashboard">
+        <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+      </a>
+      <a class="nav-item" data-page="calculadora" id="navCalculadora">
+        <i class="fas fa-calculator"></i><span>Calculadora</span>
+      </a>
+      <a class="nav-item" data-page="jogadores" id="navJogadores">
+        <i class="fas fa-users"></i><span>Jogadores</span>
+      </a>
+      <a class="nav-item" data-page="promocao" id="navPromocao">
+        <i class="fas fa-user-plus"></i><span>Promoção</span>
+      </a>
+      <a class="nav-item adm-only" data-page="edit-items" id="navEditItems">
+        <i class="fas fa-edit"></i><span>Editar Itens</span>
+      </a>
+      <a class="nav-item" data-page="sistema" id="navSistema">
+        <i class="fas fa-gear"></i><span>Sistema</span>
+      </a>
+    </nav>
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <i class="fas fa-chevron-right" id="toggleIcon"></i>
+      <span>Expandir</span>
+    </button>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main" id="mainContent">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="page-title" id="pageTitle">📊 Dashboard</span>
+        <span class="page-sub" id="pageSub">Visão geral</span>
+      </div>
+    </header>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="dashboardStats">
+        <div class="stat-card"><div class="stat-label">Jogadores</div><div class="stat-value" id="statPlayers">0</div></div>
+        <div class="stat-card"><div class="stat-label">Itens</div><div class="stat-value" id="statItems">0</div></div>
+        <div class="stat-card"><div class="stat-label">Última atualização</div><div class="stat-value" id="statLastUpdate" style="font-size:16px;">—</div></div>
+        <div class="stat-card"><div class="stat-label">Espaço usado</div><div class="stat-value" id="statStorage" style="font-size:18px;">0 KB</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-bolt"></i> Atalhos rápidos</div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;">
+          <button class="btn btn-secondary" onclick="navigateTo('calculadora')">🧮 Calculadora</button>
+          <button class="btn btn-secondary" onclick="navigateTo('jogadores')">👥 Jogadores</button>
+          <button class="btn btn-secondary" onclick="navigateTo('promocao')">⭐ Promoção</button>
+          <button class="btn btn-secondary" onclick="navigateTo('sistema')">🔧 Sistema</button>
         </div>
       </div>
-      <div class="sidebar-user" id="sidebarUser">
-        <span class="sidebar-user-name" id="userDisplay">Jogador: <strong>-</strong></span>
-        <button class="btn btn-danger btn-sm" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
-      </div>
-      <nav class="sidebar-nav">
-        <a class="nav-item active" data-page="dashboard" id="navDashboard">
-          <i class="fas fa-chart-pie"></i><span>Dashboard</span>
-        </a>
-        <a class="nav-item" data-page="calculadora" id="navCalculadora">
-          <i class="fas fa-calculator"></i><span>Calculadora</span>
-        </a>
-        <a class="nav-item" data-page="jogadores" id="navJogadores">
-          <i class="fas fa-users"></i><span>Jogadores</span>
-        </a>
-        <a class="nav-item" data-page="promocao" id="navPromocao">
-          <i class="fas fa-user-plus"></i><span>Promoção</span>
-        </a>
-        <a class="nav-item adm-only" data-page="edit-items" id="navEditItems">
-          <i class="fas fa-edit"></i><span>Editar Itens</span>
-        </a>
-        <a class="nav-item" data-page="sistema" id="navSistema">
-          <i class="fas fa-gear"></i><span>Sistema</span>
-        </a>
-      </nav>
-      <button class="sidebar-toggle" id="sidebarToggle">
-        <i class="fas fa-chevron-right" id="toggleIcon"></i>
-        <span>Expandir</span>
-      </button>
-    </aside>
+    </div>
 
-    <!-- ===== MAIN ===== -->
-    <main class="main" id="mainContent">
-      <header class="topbar">
-        <div class="topbar-left">
-          <span class="page-title" id="pageTitle">📊 Dashboard</span>
-          <span class="page-sub" id="pageSub">Visão geral</span>
-        </div>
-      </header>
-
-      <!-- ===== DASHBOARD ===== -->
-      <div class="page active" id="page-dashboard">
-        <div class="stats-grid" id="dashboardStats">
-          <div class="stat-card"><div class="stat-label">Jogadores</div><div class="stat-value" id="statPlayers">0</div></div>
-          <div class="stat-card"><div class="stat-label">Itens</div><div class="stat-value" id="statItems">0</div></div>
-          <div class="stat-card"><div class="stat-label">Última atualização</div><div class="stat-value" id="statLastUpdate" style="font-size:16px;">—</div></div>
-          <div class="stat-card"><div class="stat-label">Espaço usado</div><div class="stat-value" id="statStorage" style="font-size:18px;">0 KB</div></div>
-        </div>
-        <div class="panel">
-          <div class="panel-title"><i class="fas fa-bolt"></i> Atalhos rápidos</div>
-          <div style="display:flex;flex-wrap:wrap;gap:12px;">
-            <button class="btn btn-secondary" onclick="navigateTo('calculadora')">🧮 Calculadora</button>
-            <button class="btn btn-secondary" onclick="navigateTo('jogadores')">👥 Jogadores</button>
-            <button class="btn btn-secondary" onclick="navigateTo('promocao')">⭐ Promoção</button>
-            <button class="btn btn-secondary" onclick="navigateTo('sistema')">🔧 Sistema</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== CALCULADORA ===== -->
-      <div class="page" id="page-calculadora">
-        <div class="panel">
-          <div class="panel-title"><i class="fas fa-arrow-right-arrow-left"></i> Calculadora de Troca</div>
-          <div style="display:flex;flex-wrap:wrap;gap:20px;">
-            <!-- Oferece -->
-            <div style="flex:1;min-width:280px;">
-              <h4 style="color:var(--text-secondary);font-weight:400;margin-bottom:8px;display:flex;justify-content:space-between;">
-                <span><i class="fas fa-hand"></i> Você oferece</span>
-                <button class="btn btn-sm btn-danger" onclick="clearSide('L')">Limpar</button>
-              </h4>
-              <div class="input-wrap">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInputL" placeholder="Buscar item..." autocomplete="off">
-              </div>
-              <div style="display:flex;gap:8px;margin-top:8px;">
-                <select id="a" style="flex:1;padding:12px 16px;background:var(--bg-primary);border:2px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:14px;outline:none;"></select>
-                <button class="btn btn-primary btn-sm" onclick='addItem("L", a.value)'>Adicionar</button>
-              </div>
-              <ul class="item-list" id="L"></ul>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
-                <span style="color:var(--text-secondary);">Total: <strong id="tl" style="color:var(--neon-purple);">0</strong></span>
-                <span class="limit-warn" id="warnL"></span>
-              </div>
-              <div class="suggest-wrap">
-                <button class="suggest-btn" onclick="toggleSuggest('L')"><i class="fas fa-box"></i> Sugestões de Conjuntos</button>
-                <div class="suggest-dropdown" id="suggestL"></div>
-              </div>
-            </div>
-            <!-- Recebe -->
-            <div style="flex:1;min-width:280px;">
-              <h4 style="color:var(--text-secondary);font-weight:400;margin-bottom:8px;display:flex;justify-content:space-between;">
-                <span><i class="fas fa-hand-receiving"></i> Recebe</span>
-                <button class="btn btn-sm btn-danger" onclick="clearSide('R')">Limpar</button>
-              </h4>
-              <div class="input-wrap">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInputR" placeholder="Buscar item..." autocomplete="off">
-              </div>
-              <div style="display:flex;gap:8px;margin-top:8px;">
-                <select id="b" style="flex:1;padding:12px 16px;background:var(--bg-primary);border:2px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:14px;outline:none;"></select>
-                <button class="btn btn-primary btn-sm" onclick='addItem("R", b.value)'>Adicionar</button>
-              </div>
-              <ul class="item-list" id="R"></ul>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
-                <span style="color:var(--text-secondary);">Total: <strong id="tr" style="color:var(--neon-purple);">0</strong></span>
-                <span class="limit-warn" id="warnR"></span>
-              </div>
-              <div class="suggest-wrap">
-                <button class="suggest-btn" onclick="toggleSuggest('R')"><i class="fas fa-box"></i> Sugestões de Conjuntos</button>
-                <div class="suggest-dropdown" id="suggestR"></div>
-              </div>
-            </div>
-          </div>
-          <!-- Total Bar -->
-          <div class="total-bar" style="margin-top:20px;">
-            <div class="total-item"><span class="label">Oferece:</span><span class="value" id="totalL">0</span></div>
-            <div class="total-item"><span class="label">Recebe:</span><span class="value" id="totalR">0</span></div>
-            <div class="diff" id="diffDisplay">0</div>
-            <div id="res" style="font-size:20px;color:var(--neon-purple);font-weight:300;">Troca justa</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== JOGADORES ===== -->
-      <div class="page" id="page-jogadores">
-        <div class="panel">
-          <div class="panel-title"><i class="fas fa-users"></i> Lista de Jogadores</div>
-          <div class="table-wrap">
-            <table class="styled-table">
-              <thead><tr><th>Nome</th><th>Poder</th><th>Discord</th><th>Inativo</th><th>Participação</th><th class="adm-only" style="display:none;">Ações</th></tr></thead>
-              <tbody id="playersBody"></tbody>
-            </table>
-          </div>
-          <div id="addPlayerArea" style="display:none;margin-top:20px;padding:16px;background:var(--bg-primary);border-radius:var(--radius-sm);border:1px solid var(--border-color);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
-            <input type="text" id="newPlayerName" placeholder="Nome" style="flex:1;min-width:120px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
-            <input type="text" id="newPlayerPower" placeholder="Poder (ex: 5.2M)" style="flex:1;min-width:100px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
-            <input type="text" id="newPlayerDiscord" placeholder="Link Discord" style="flex:1;min-width:120px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
-            <select id="newPlayerInactive" style="padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
-              <option value="não">Não</option><option value="sim">Sim</option><option value="parcial">Parcial</option>
-            </select>
-            <input type="number" id="newPlayerParticipation" placeholder="0-10" min="0" max="10" step="1" value="0" style="width:80px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
-            <button class="btn btn-primary" id="addPlayerBtn">Adicionar</button>
-          </div>
-          <div id="guestMsg" style="color:var(--text-muted);margin-top:12px;display:none;">Modo convidado: visualização apenas.</div>
-        </div>
-      </div>
-
-      <!-- ===== PROMOÇÃO ===== -->
-      <div class="page" id="page-promocao">
-        <div class="panel">
-          <div class="panel-title"><i class="fas fa-user-plus"></i> Gerador de Promoção</div>
-          <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px;">
-            Crie uma mensagem de promoção formatada para divulgação.
-          </p>
-
-          <div class="promo-field-group">
+    <!-- ===== CALCULADORA ===== -->
+    <div class="page" id="page-calculadora">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-arrow-right-arrow-left"></i> Calculadora de Troca</div>
+        <div style="display:flex;flex-wrap:wrap;gap:20px;">
+          <!-- Oferece -->
+          <div style="flex:1;min-width:280px;">
+            <h4 style="color:var(--text-secondary);font-weight:400;margin-bottom:8px;display:flex;justify-content:space-between;">
+              <span><i class="fas fa-hand"></i> Você oferece</span>
+              <button class="btn btn-sm btn-danger" onclick="clearSide('L')">Limpar</button>
+            </h4>
             <div class="input-wrap">
-              <i class="fas fa-user-tie"></i>
-              <input type="text" id="promoResponsavel" placeholder="Responsável (ADM/Mod)" value="">
+              <i class="fas fa-search"></i>
+              <input type="text" id="searchInputL" placeholder="Buscar item..." autocomplete="off">
             </div>
-            <div class="input-wrap">
-              <i class="fas fa-user"></i>
-              <input type="text" id="promoIndividuo" placeholder="Nick do promovido" list="playerSuggestions">
-              <datalist id="playerSuggestions"></datalist>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <select id="a" style="flex:1;padding:12px 16px;background:var(--bg-primary);border:2px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:14px;outline:none;"></select>
+              <button class="btn btn-primary btn-sm" onclick='addItem("L", a.value)'>Adicionar</button>
             </div>
-            <div class="input-wrap">
-              <i class="fas fa-arrow-down"></i>
-              <input type="text" id="promoPatenteAntiga" placeholder="Patente antiga (ex: [Tg-Elite] Tigre de Elite.)" list="rankSuggestions">
+            <ul class="item-list" id="L"></ul>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+              <span style="color:var(--text-secondary);">Total: <strong id="tl" style="color:var(--neon-purple);">0</strong></span>
+              <span class="limit-warn" id="warnL"></span>
             </div>
-            <div class="input-wrap">
-              <i class="fas fa-arrow-up"></i>
-              <input type="text" id="promoPatenteNova" placeholder="Patente nova (ex: [3° Class] Tigre de Terceira Classe.)" list="rankSuggestions">
-            </div>
-            <div class="input-wrap full-width">
-              <i class="fas fa-pencil-alt" style="top:18px;transform:none;"></i>
-              <textarea id="promoMotivo" placeholder="Motivo da promoção (padrão: capacitação de patente concluída.)" style="padding-left:48px;">capacitação de patente concluída.</textarea>
+            <div class="suggest-wrap">
+              <button class="suggest-btn" onclick="toggleSuggest('L')"><i class="fas fa-box"></i> Sugestões de Conjuntos</button>
+              <div class="suggest-dropdown" id="suggestL"></div>
             </div>
           </div>
-
-          <datalist id="rankSuggestions">
-            <option value="[ALT-COM] Alto-Comando">
-            <option value="[OF] Oficiais">
-            <option value="[GD] Graduados">
-            <option value="[PR] Praças">
-            <option value="[Tg-Elite] Tigre de Elite.">
-            <option value="[3° Class] Tigre de Terceira Classe.">
-          </datalist>
-
-          <div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;">
-            <button class="btn btn-primary" id="generatePromoBtn"><i class="fas fa-wand-magic-sparkles"></i> Gerar Promoção</button>
-            <button class="btn btn-secondary" id="copyPromoBtn"><i class="fas fa-copy"></i> Copiar</button>
-            <button class="btn btn-secondary" id="downloadPromoTxtBtn"><i class="fas fa-file-alt"></i> Baixar .txt</button>
-            <button class="btn btn-secondary" id="clearPromoBtn"><i class="fas fa-eraser"></i> Limpar</button>
-          </div>
-
-          <textarea class="promo-output" id="promoOutput" readonly placeholder="A mensagem de promoção aparecerá aqui..."></textarea>
-        </div>
-      </div>
-
-      <!-- ===== EDITAR ITENS (ADM) ===== -->
-      <div class="page" id="page-edit-items">
-        <div class="panel">
-          <div class="panel-title"><i class="fas fa-edit"></i> Editar Valores dos Itens</div>
-          <div class="edit-items-panel" id="editItemsContainer"></div>
-          <div style="margin-top:16px;">
-            <button class="btn btn-secondary" onclick="resetAllItems()"><i class="fas fa-undo"></i> Restaurar valores padrão</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== SISTEMA ===== -->
-      <div class="page" id="page-sistema">
-        <div class="panel">
-          <div class="panel-title"><i class="fas fa-gear"></i> Sistema</div>
-          <div class="sistema-grid">
-            <div class="sistema-card">
-              <span class="label">Espaço utilizado</span>
-              <span class="value" id="storageSize">0 KB</span>
+          <!-- Recebe -->
+          <div style="flex:1;min-width:280px;">
+            <h4 style="color:var(--text-secondary);font-weight:400;margin-bottom:8px;display:flex;justify-content:space-between;">
+              <span><i class="fas fa-hand-receiving"></i> Recebe</span>
+              <button class="btn btn-sm btn-danger" onclick="clearSide('R')">Limpar</button>
+            </h4>
+            <div class="input-wrap">
+              <i class="fas fa-search"></i>
+              <input type="text" id="searchInputR" placeholder="Buscar item..." autocomplete="off">
             </div>
-            <div class="sistema-card">
-              <span class="label">Última atualização</span>
-              <span class="value" id="lastUpdate">Nunca</span>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <select id="b" style="flex:1;padding:12px 16px;background:var(--bg-primary);border:2px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:14px;outline:none;"></select>
+              <button class="btn btn-primary btn-sm" onclick='addItem("R", b.value)'>Adicionar</button>
             </div>
-            <div class="sistema-card">
-              <span class="label">Compartilhamento</span>
-              <div class="btn-group">
-                <button class="btn btn-secondary" onclick="exportFullData()"><i class="fas fa-file-export"></i> Exportar Lista</button>
-                <button class="btn btn-secondary" onclick="document.getElementById('importFileInput').click()"><i class="fas fa-file-import"></i> Importar Lista</button>
-                <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importFullData(event)">
-              </div>
+            <ul class="item-list" id="R"></ul>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+              <span style="color:var(--text-secondary);">Total: <strong id="tr" style="color:var(--neon-purple);">0</strong></span>
+              <span class="limit-warn" id="warnR"></span>
             </div>
-            <div class="sistema-card">
-              <span class="label">Código de Compartilhamento</span>
-              <div class="btn-group">
-                <button class="btn btn-secondary" onclick="copyShareCode()"><i class="fas fa-copy"></i> Copiar Código</button>
-                <button class="btn btn-secondary" onclick="importShareCode()"><i class="fas fa-file-import"></i> Importar Código</button>
-              </div>
-              <textarea id="shareCodeInput" placeholder="Cole o código Base64 aqui..."></textarea>
-            </div>
-            <div class="sistema-card">
-              <span class="label">Backup</span>
-              <div class="btn-group">
-                <button class="btn btn-secondary" onclick="exportBackup()"><i class="fas fa-download"></i> Exportar Backup</button>
-                <button class="btn btn-secondary" onclick="document.getElementById('restoreBackupInput').click()"><i class="fas fa-upload"></i> Restaurar Backup</button>
-                <input type="file" id="restoreBackupInput" accept=".json" style="display:none" onchange="restoreBackup(event)">
-              </div>
-            </div>
-            <div class="sistema-card adm-only" style="display:none;">
-              <span class="label">Gerenciamento</span>
-              <div class="btn-group">
-                <button class="btn btn-danger" onclick="clearAllStorage()"><i class="fas fa-trash"></i> Limpar LocalStorage</button>
-              </div>
+            <div class="suggest-wrap">
+              <button class="suggest-btn" onclick="toggleSuggest('R')"><i class="fas fa-box"></i> Sugestões de Conjuntos</button>
+              <div class="suggest-dropdown" id="suggestR"></div>
             </div>
           </div>
         </div>
+        <!-- Total Bar -->
+        <div class="total-bar" style="margin-top:20px;">
+          <div class="total-item"><span class="label">Oferece:</span><span class="value" id="totalL">0</span></div>
+          <div class="total-item"><span class="label">Recebe:</span><span class="value" id="totalR">0</span></div>
+          <div class="diff" id="diffDisplay">0</div>
+          <div id="res" style="font-size:20px;color:var(--neon-purple);font-weight:300;">Troca justa</div>
+        </div>
       </div>
-    </main>
+    </div>
+
+    <!-- ===== JOGADORES ===== -->
+    <div class="page" id="page-jogadores">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-users"></i> Lista de Jogadores</div>
+        <div class="table-wrap">
+          <table class="styled-table">
+            <thead><tr><th>Nome</th><th>Poder</th><th>Discord</th><th>Inativo</th><th>Participação</th><th class="adm-only" style="display:none;">Ações</th></tr></thead>
+            <tbody id="playersBody"></tbody>
+          </table>
+        </div>
+        <div id="addPlayerArea" style="display:none;margin-top:20px;padding:16px;background:var(--bg-primary);border-radius:var(--radius-sm);border:1px solid var(--border-color);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+          <input type="text" id="newPlayerName" placeholder="Nome" style="flex:1;min-width:120px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+          <input type="text" id="newPlayerPower" placeholder="Poder (ex: 5.2M)" style="flex:1;min-width:100px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+          <input type="text" id="newPlayerDiscord" placeholder="Link Discord" style="flex:1;min-width:120px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+          <select id="newPlayerInactive" style="padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+            <option value="não">Não</option><option value="sim">Sim</option><option value="parcial">Parcial</option>
+          </select>
+          <input type="number" id="newPlayerParticipation" placeholder="0-10" min="0" max="10" step="1" value="0" style="width:80px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+          <button class="btn btn-primary" id="addPlayerBtn">Adicionar</button>
+        </div>
+        <div id="guestMsg" style="color:var(--text-muted);margin-top:12px;display:none;">Modo convidado: visualização apenas.</div>
+      </div>
+    </div>
+
+    <!-- ===== PROMOÇÃO ===== -->
+    <div class="page" id="page-promocao">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-user-plus"></i> Gerador de Promoção</div>
+        <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px;">
+          Crie uma mensagem de promoção formatada para divulgação.
+        </p>
+
+        <div class="promo-field-group">
+          <div class="input-wrap">
+            <i class="fas fa-user-tie"></i>
+            <input type="text" id="promoResponsavel" placeholder="Responsável (ADM/Mod)" value="">
+          </div>
+          <div class="input-wrap">
+            <i class="fas fa-user"></i>
+            <input type="text" id="promoIndividuo" placeholder="Nick do promovido" list="playerSuggestions">
+            <datalist id="playerSuggestions"></datalist>
+          </div>
+          <div class="input-wrap">
+            <i class="fas fa-arrow-down"></i>
+            <input type="text" id="promoPatenteAntiga" placeholder="Patente antiga (ex: [Tg-Elite] Tigre de Elite.)" list="rankSuggestions">
+          </div>
+          <div class="input-wrap">
+            <i class="fas fa-arrow-up"></i>
+            <input type="text" id="promoPatenteNova" placeholder="Patente nova (ex: [3° Class] Tigre de Terceira Classe.)" list="rankSuggestions">
+          </div>
+          <div class="input-wrap full-width">
+            <i class="fas fa-pencil-alt" style="top:18px;transform:none;"></i>
+            <textarea id="promoMotivo" placeholder="Motivo da promoção (padrão: capacitação de patente concluída.)" style="padding-left:48px;">capacitação de patente concluída.</textarea>
+          </div>
+        </div>
+
+        <datalist id="rankSuggestions">
+          <option value="[ALT-COM] Alto-Comando">
+          <option value="[OF] Oficiais">
+          <option value="[GD] Graduados">
+          <option value="[PR] Praças">
+          <option value="[Tg-Elite] Tigre de Elite.">
+          <option value="[3° Class] Tigre de Terceira Classe.">
+        </datalist>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;">
+          <button class="btn btn-primary" id="generatePromoBtn"><i class="fas fa-wand-magic-sparkles"></i> Gerar Promoção</button>
+          <button class="btn btn-secondary" id="copyPromoBtn"><i class="fas fa-copy"></i> Copiar</button>
+          <button class="btn btn-secondary" id="downloadPromoTxtBtn"><i class="fas fa-file-alt"></i> Baixar .txt</button>
+          <button class="btn btn-secondary" id="clearPromoBtn"><i class="fas fa-eraser"></i> Limpar</button>
+        </div>
+
+        <textarea class="promo-output" id="promoOutput" readonly placeholder="A mensagem de promoção aparecerá aqui..."></textarea>
+      </div>
+    </div>
+
+    <!-- ===== EDITAR ITENS (ADM) ===== -->
+    <div class="page" id="page-edit-items">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-edit"></i> Editar Valores dos Itens</div>
+        <div class="edit-items-panel" id="editItemsContainer"></div>
+        <div style="margin-top:16px;">
+          <button class="btn btn-secondary" onclick="resetAllItems()"><i class="fas fa-undo"></i> Restaurar valores padrão</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SISTEMA ===== -->
+    <div class="page" id="page-sistema">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-gear"></i> Sistema</div>
+        <div class="sistema-grid">
+          <div class="sistema-card">
+            <span class="label">Espaço utilizado</span>
+            <span class="value" id="storageSize">0 KB</span>
+          </div>
+          <div class="sistema-card">
+            <span class="label">Última atualização</span>
+            <span class="value" id="lastUpdate">Nunca</span>
+          </div>
+          <div class="sistema-card">
+            <span class="label">Compartilhamento</span>
+            <div class="btn-group">
+              <button class="btn btn-secondary" onclick="exportFullData()"><i class="fas fa-file-export"></i> Exportar Lista</button>
+              <button class="btn btn-secondary" onclick="document.getElementById('importFileInput').click()"><i class="fas fa-file-import"></i> Importar Lista</button>
+              <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importFullData(event)">
+            </div>
+          </div>
+          <div class="sistema-card">
+            <span class="label">Código de Compartilhamento</span>
+            <div class="btn-group">
+              <button class="btn btn-secondary" onclick="copyShareCode()"><i class="fas fa-copy"></i> Copiar Código</button>
+              <button class="btn btn-secondary" onclick="importShareCode()"><i class="fas fa-file-import"></i> Importar Código</button>
+            </div>
+            <textarea id="shareCodeInput" placeholder="Cole o código Base64 aqui..."></textarea>
+          </div>
+          <div class="sistema-card">
+            <span class="label">Backup</span>
+            <div class="btn-group">
+              <button class="btn btn-secondary" onclick="exportBackup()"><i class="fas fa-download"></i> Exportar Backup</button>
+              <button class="btn btn-secondary" onclick="document.getElementById('restoreBackupInput').click()"><i class="fas fa-upload"></i> Restaurar Backup</button>
+              <input type="file" id="restoreBackupInput" accept=".json" style="display:none" onchange="restoreBackup(event)">
+            </div>
+          </div>
+          <div class="sistema-card adm-only" style="display:none;">
+            <span class="label">Gerenciamento</span>
+            <div class="btn-group">
+              <button class="btn btn-danger" onclick="clearAllStorage()"><i class="fas fa-trash"></i> Limpar LocalStorage</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 
   </div><!-- /appContainer -->
 
@@ -1267,19 +1260,7 @@
   <!-- ===== SCRIPT PRINCIPAL ===== -->
   <script>
     // ====================================================================
-    // 1. CONFIGURAÇÃO SUPABASE
-    // ====================================================================
-    // ⚠️ SUBSTITUA A CHAVE ABAIXO PELA SUA CHAVE PÚBLICA (ANON KEY) DO SUPABASE
-    const SUPABASE_URL = 'https://swjaytuacnnldmsciwgu.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_jx3EoAPOaqBW7r-yE-dR0g_l0R4qH...'; // <--- COLE A CHAVE COMPLETA AQUI
-
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let currentUser = null;      // armazena o username (string)
-    let isAdmin = false;
-
-    // ====================================================================
-    // 2. DADOS PADRÃO (ITENS)
+    // 1. DADOS PADRÃO (ITENS)
     // ====================================================================
     const DEFAULT_ITEMS = [
       { name: 'Sayen Drip V', value: 180, demand: 'Medium-High' },
@@ -1602,7 +1583,7 @@
     ];
 
     // ====================================================================
-    // 3. ITENS (com localStorage)
+    // 2. ITENS (com localStorage)
     // ====================================================================
     function loadItems() {
       const stored = localStorage.getItem('dragonSoul_items');
@@ -1689,7 +1670,7 @@
     let setComponents = buildSetMap(renamedItems);
 
     // ====================================================================
-    // 4. JOGADORES
+    // 3. JOGADORES
     // ====================================================================
     const DEFAULT_PLAYERS = [
       { name: 'Vettzn', power: '5.2M', discord: '', inactive: 'não', participation: 0 },
@@ -1721,6 +1702,12 @@
     let players = loadPlayers();
 
     // ====================================================================
+    // 4. AUTENTICAÇÃO (AGORA GERENCIADA PELO FIREBASE)
+    //    As variáveis window.currentUser e window.isAdmin são definidas
+    //    pelo módulo Firebase após o login.
+    // ====================================================================
+
+    // ====================================================================
     // 5. ESTADO DA CALCULADORA (por jogador)
     // ====================================================================
     function loadPlayerData(username) {
@@ -1736,6 +1723,7 @@
       localStorage.setItem('dragonSoul_calc_' + username, JSON.stringify(data));
     }
     const playerData = {};
+    // Inicializa vazio; será populado quando o usuário logar
 
     const MAX_ITEMS = 9;
     const dom = {};
@@ -1800,13 +1788,15 @@
     // 7. FUNÇÕES DA CALCULADORA
     // ====================================================================
     function getCurrentData() {
-      if (!currentUser) return { leftItems: [], rightItems: [] };
-      if (!playerData[currentUser]) playerData[currentUser] = { leftItems: [], rightItems: [] };
-      return playerData[currentUser];
+      const user = window.currentUser;
+      if (!user) return { leftItems: [], rightItems: [] };
+      if (!playerData[user]) playerData[user] = loadPlayerData(user);
+      return playerData[user];
     }
 
     function persistCurrentData() {
-      if (currentUser) savePlayerData(currentUser, getCurrentData());
+      const user = window.currentUser;
+      if (user && playerData[user]) savePlayerData(user, playerData[user]);
     }
 
     function updateAll() {
@@ -2065,11 +2055,10 @@
           </td>`;
         tbody.appendChild(tr);
       });
-      // Aplica visibilidade ADM
-      const showAdm = isAdmin;
-      document.querySelectorAll('.styled-table .adm-only').forEach(el => el.style.display = showAdm ? '' : 'none');
-      dom.addPlayerArea.style.display = showAdm ? 'flex' : 'none';
-      dom.guestMsg.style.display = 'none'; // sem modo convidado
+      const isAdm = window.isAdmin || false;
+      document.querySelectorAll('.styled-table .adm-only').forEach(el => el.style.display = isAdm ? '' : 'none');
+      dom.addPlayerArea.style.display = isAdm ? 'flex' : 'none';
+      dom.guestMsg.style.display = 'none'; // não temos mais modo convidado
       updateDashboard();
       updatePlayerSuggestions();
     }
@@ -2339,327 +2328,4 @@
         input.value = '';
         showToast('Código importado!', 'success');
       } catch (err) {
-        showToast('Erro ao importar código: ' + err.message, 'error');
-      }
-    }
-
-    function exportBackup() {
-      const data = getFullData();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'C.O.A_backup_' + new Date().toISOString().slice(0, 10) + '.json';
-      a.click();
-      URL.revokeObjectURL(url);
-      setLastUpdate();
-      showToast('Backup exportado!', 'success');
-    }
-
-    function restoreBackup(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const data = JSON.parse(e.target.result);
-          if (!data.players || !data.items) throw new Error('Estrutura inválida');
-          if (!confirm('Restaurar backup? Isso substituirá todos os dados atuais.')) return;
-          players = data.players.map(p => ({ ...p, inactive: p.inactive || 'não', participation: p.participation !==
-              undefined ? p.participation : 0 }));
-          savePlayers(players);
-          const newItems = DEFAULT_ITEMS.map(def => {
-            const found = data.items.find(it => it.name === def.name);
-            return found ? { ...def, value: found.value } : { ...def };
-          });
-          items = newItems;
-          saveItems(items);
-          renamedItems = renameSetComponents(items);
-          renamedItems.sort((a, b) => a.name.localeCompare(b.name));
-          setComponents = buildSetMap(renamedItems);
-          populateSelects();
-          populateSuggestions();
-          updateAll();
-          renderPlayers();
-          renderEditItems();
-          setLastUpdate();
-          showToast('Backup restaurado!', 'success');
-        } catch (err) {
-          showToast('Erro ao restaurar backup: ' + err.message, 'error');
-        }
-      };
-      reader.readAsText(file);
-      event.target.value = '';
-    }
-
-    function clearAllStorage() {
-      if (!confirm('⚠️ Tem certeza que deseja limpar todo o LocalStorage? Esta ação é irreversível.')) return;
-      if (!confirm('Última confirmação: todos os dados serão apagados.')) return;
-      localStorage.clear();
-      location.reload();
-    }
-
-    // ====================================================================
-    // 16. TOAST
-    // ====================================================================
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const el = document.createElement('div');
-      el.className = `toast ${type}`;
-      const icon = type === 'success' ? 'fa-check-circle' :
-        type === 'error' ? 'fa-circle-exclamation' :
-        'fa-circle-info';
-      el.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
-      container.appendChild(el);
-      setTimeout(() => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateX(20px)';
-        setTimeout(() => el.remove(), 400);
-      }, 3500);
-    }
-
-    // ====================================================================
-    // 17. NAVEGAÇÃO E SIDEBAR TOGGLE
-    // ====================================================================
-    const pageTitles = {
-      dashboard: { title: '📊 Dashboard', sub: 'Visão geral' },
-      calculadora: { title: '🧮 Calculadora', sub: 'Troca de itens' },
-      jogadores: { title: '👥 Jogadores', sub: 'Lista e gerenciamento' },
-      promocao: { title: '⭐ Promoção', sub: 'Gerar promoção' },
-      'edit-items': { title: '⚙️ Editar Itens', sub: 'Valores dos itens' },
-      sistema: { title: '🔧 Sistema', sub: 'Gerenciamento e backup' },
-    };
-
-    function navigateTo(page) {
-      document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-      const target = document.getElementById('page-' + page);
-      if (target) target.classList.add('active');
-      document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
-      const navItem = document.querySelector(`.sidebar-nav .nav-item[data-page="${page}"]`);
-      if (navItem) navItem.classList.add('active');
-
-      const cfg = pageTitles[page] || { title: page, sub: '' };
-      document.getElementById('pageTitle').textContent = cfg.title;
-      document.getElementById('pageSub').textContent = cfg.sub;
-
-      if (page === 'edit-items') renderEditItems();
-      if (page === 'jogadores') renderPlayers();
-      if (page === 'promocao') {
-        if (isAdmin) dom.promoResponsavel.value = currentUser || '';
-        updatePlayerSuggestions();
-      }
-      if (page === 'dashboard' || page === 'sistema') { updateDashboard();
-        updateStorageInfo(); }
-
-      if (window.innerWidth <= 768 && dom.sidebar.classList.contains('expanded')) {
-        toggleSidebar();
-      }
-    }
-
-    function toggleSidebar() {
-      const expanded = dom.sidebar.classList.toggle('expanded');
-      dom.main.classList.toggle('expanded', expanded);
-      dom.toggleIcon.className = expanded ? 'fas fa-chevron-left' : 'fas fa-chevron-right';
-      dom.sidebarToggle.querySelector('span').textContent = expanded ? 'Recolher' : 'Expandir';
-    }
-
-    // ====================================================================
-    // 18. AUTENTICAÇÃO COM SUPABASE
-    // ====================================================================
-
-    // --- LOGIN ---
-    async function doLogin() {
-      const userVal = document.getElementById('username').value.trim();
-      const passVal = document.getElementById('password').value.trim();
-      const errorEl = document.getElementById('loginError');
-
-      if (!userVal || !passVal) {
-        errorEl.textContent = 'Preencha usuário e senha.';
-        return;
-      }
-
-      // Monta o email no formato username@coa.com
-      const email = userVal.includes('@') ? userVal : `${userVal}@coa.com`;
-
-      errorEl.textContent = 'Entrando...';
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: passVal
-      });
-
-      if (error) {
-        errorEl.textContent = 'Usuário ou senha incorretos.';
-        return;
-      }
-
-      errorEl.textContent = '';
-      await startApp(data.user);
-    }
-
-    // --- CADASTRO ---
-    async function doRegister() {
-      const userVal = document.getElementById('username').value.trim();
-      const passVal = document.getElementById('password').value.trim();
-      const errorEl = document.getElementById('loginError');
-
-      if (!userVal || !passVal) {
-        errorEl.textContent = 'Preencha usuário e senha.';
-        return;
-      }
-
-      const email = userVal.includes('@') ? userVal : `${userVal}@coa.com`;
-
-      errorEl.textContent = 'Cadastrando...';
-
-      const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: passVal
-      });
-
-      if (error) {
-        errorEl.textContent = 'Erro ao cadastrar: ' + error.message;
-        return;
-      }
-
-      // Cria o perfil na tabela profiles com role 'user'
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([{ id: data.user.id, username: userVal, role: 'user' }]);
-
-      if (profileError) {
-        console.warn('Erro ao criar perfil:', profileError);
-        errorEl.textContent = 'Usuário criado, mas houve erro ao salvar perfil. Contate o ADM.';
-        return;
-      }
-
-      errorEl.style.color = '#34D399';
-      errorEl.textContent = 'Usuário cadastrado com sucesso! Faça login.';
-      document.getElementById('username').value = '';
-      document.getElementById('password').value = '';
-
-      // Opcional: fazer login automático
-      // await doLogin();
-    }
-
-    // --- LOGOUT ---
-    async function doLogout() {
-      await supabase.auth.signOut();
-      currentUser = null;
-      isAdmin = false;
-      document.getElementById('appContainer').style.display = 'none';
-      document.getElementById('loginScreen').style.display = 'block';
-      document.getElementById('username').value = '';
-      document.getElementById('password').value = '';
-      document.getElementById('loginError').textContent = '';
-      // Oculta elementos ADM
-      document.querySelectorAll('.adm-only').forEach(el => el.style.display = 'none');
-      showToast('Desconectado.', 'info');
-    }
-
-    // --- INICIAR APP com o usuário logado ---
-    async function startApp(user) {
-      // Busca o perfil do usuário na tabela profiles
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('username, role')
-        .eq('id', user.id)
-        .single();
-
-      if (error || !profile) {
-        console.warn('Perfil não encontrado. Criando um perfil padrão...');
-        // Tenta criar o perfil agora (caso não tenha sido criado no cadastro)
-        const username = user.email.split('@')[0];
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert([{ id: user.id, username: username, role: 'user' }]);
-        if (insertError) {
-          showToast('Erro ao criar perfil. Contate o ADM.', 'error');
-          return;
-        }
-        // Recupera novamente
-        const { data: newProfile } = await supabase
-          .from('profiles')
-          .select('username, role')
-          .eq('id', user.id)
-          .single();
-        if (newProfile) {
-          currentUser = newProfile.username;
-          isAdmin = newProfile.role === 'admin';
-        } else {
-          currentUser = username;
-          isAdmin = false;
-        }
-      } else {
-        currentUser = profile.username;
-        isAdmin = profile.role === 'admin';
-      }
-
-      // Carrega dados da calculadora para este usuário
-      if (!playerData[currentUser]) playerData[currentUser] = loadPlayerData(currentUser);
-
-      // Exibe app
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('appContainer').style.display = 'block';
-      document.getElementById('userDisplay').innerHTML = `Jogador: <strong>${currentUser}</strong>`;
-
-      // Aplica visibilidade ADM
-      document.querySelectorAll('.adm-only').forEach(el => {
-        el.style.display = isAdmin ? '' : 'none';
-      });
-
-      // Atualiza componentes
-      updateAll();
-      renderPlayers();
-      if (isAdmin) renderEditItems();
-      navigateTo('dashboard');
-      setLastUpdate();
-      showToast(`Bem-vindo, ${currentUser}!`, 'success');
-    }
-
-    // --- VERIFICA SESSÃO EXISTENTE AO CARREGAR ---
-    async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session && session.user) {
-        await startApp(session.user);
-      } else {
-        document.getElementById('loginScreen').style.display = 'block';
-        document.getElementById('appContainer').style.display = 'none';
-      }
-    }
-
-    // ====================================================================
-    // 19. INICIALIZAÇÃO
-    // ====================================================================
-    document.addEventListener('DOMContentLoaded', function() {
-      initDomRefs();
-
-      // Garante que a tela de login fique visível até a verificação de sessão
-      document.getElementById('loginScreen').style.display = 'block';
-      document.getElementById('appContainer').style.display = 'none';
-
-      populateSelects();
-      populateSuggestions();
-      setupSearch();
-
-      // Event listeners
-      document.getElementById('loginBtn').addEventListener('click', doLogin);
-      document.getElementById('registerBtn').addEventListener('click', doRegister);
-      document.getElementById('logoutBtn').addEventListener('click', doLogout);
-      document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
-      dom.sidebarToggle.addEventListener('click', toggleSidebar);
-      dom.generatePromoBtn.addEventListener('click', generatePromocao);
-      dom.copyPromoBtn.addEventListener('click', copyPromo);
-      dom.downloadPromoTxtBtn.addEventListener('click', downloadPromoTxt);
-      dom.clearPromoBtn.addEventListener('click', clearPromo);
-      dom.saveEditPlayerBtn.addEventListener('click', saveEditPlayer);
-
-      document.getElementById('username').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
-      document.getElementById('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
-
-      dom.modalOverlay.addEventListener('click', (e) => { if (e.target === dom.modalOverlay) closeModal(); });
-
-      document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
-        el.addEventListener('click', (e) => {
-          e.preventDefault();
-          navigateTo
+        show
