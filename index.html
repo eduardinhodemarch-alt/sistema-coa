@@ -1203,6 +1203,199 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- ============================================================= -->
+  <!-- MÓDULO FIREBASE (autenticação + CRUD)                         -->
+  <!-- ============================================================= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, get, child, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // ================================================================
+    // CONFIGURAÇÃO DO FIREBASE
+    // ================================================================
+    const firebaseConfig = {
+      databaseURL: "https://sisteam-coa-default-rtdb.firebaseio.com/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // ================================================================
+    // FUNÇÕES CRUD PARA ITENS E JOGADORES (expostas globalmente)
+    // ================================================================
+    window.loadItemsFromFirebase = async function() {
+      try {
+        const snapshot = await get(child(ref(db), 'itens'));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          return Array.isArray(data) ? data : Object.values(data);
+        }
+        return null;
+      } catch (e) {
+        console.error('Erro ao carregar itens:', e);
+        return null;
+      }
+    };
+
+    window.saveItemsToFirebase = async function(items) {
+      try {
+        await set(ref(db, 'itens'), items);
+      } catch (e) {
+        console.error('Erro ao salvar itens:', e);
+        throw e;
+      }
+    };
+
+    window.loadPlayersFromFirebase = async function() {
+      try {
+        const snapshot = await get(child(ref(db), 'jogadores'));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          return Array.isArray(data) ? data : Object.values(data);
+        }
+        return null;
+      } catch (e) {
+        console.error('Erro ao carregar jogadores:', e);
+        return null;
+      }
+    };
+
+    window.savePlayersToFirebase = async function(players) {
+      try {
+        await set(ref(db, 'jogadores'), players);
+      } catch (e) {
+        console.error('Erro ao salvar jogadores:', e);
+        throw e;
+      }
+    };
+
+    // ================================================================
+    // LISTA DE ADMINISTRADORES
+    // ================================================================
+    const ADM_USERS = ['CoA', 'BiancaUchiha019', 'vettzn', 'Rapha'];
+
+    // ================================================================
+    // FUNÇÃO DE LOGIN
+    // ================================================================
+    async function login() {
+      const userVal = document.getElementById('username').value.trim();
+      const passVal = document.getElementById('password').value.trim();
+      const errDiv = document.getElementById('loginError');
+
+      if (!userVal || !passVal) {
+        errDiv.textContent = 'Preencha usuário e senha!';
+        return;
+      }
+
+      errDiv.textContent = 'Verificando...';
+
+      try {
+        const dbRef = ref(db);
+        const snapshot = await get(child(dbRef, 'registros'));
+
+        if (snapshot.exists()) {
+          const registros = snapshot.val();
+          let userEncontrado = null;
+
+          Object.keys(registros).forEach(key => {
+            const item = registros[key];
+            if (item.usuario === userVal && item.senha === passVal) {
+              userEncontrado = item;
+            }
+          });
+
+          if (userEncontrado) {
+            errDiv.textContent = '';
+            window.currentUser = userEncontrado.usuario;
+            const isAdmin = ADM_USERS.includes(window.currentUser) || userEncontrado.tipo === 'admin';
+            window.isAdmin = isAdmin;
+
+            if (!window.playerData[window.currentUser]) {
+              window.playerData[window.currentUser] = { leftItems: [], rightItems: [] };
+            }
+
+            if (window.startApp) window.startApp(isAdmin);
+            else console.error('startApp não definido');
+          } else {
+            errDiv.textContent = 'Usuário ou senha incorretos!';
+          }
+        } else {
+          errDiv.textContent = 'Nenhum usuário cadastrado no banco.';
+        }
+      } catch (error) {
+        console.error('Erro no login:', error);
+        errDiv.textContent = 'Erro ao conectar com o banco de dados.';
+      }
+    }
+
+    // ================================================================
+    // FUNÇÃO DE CADASTRO
+    // ================================================================
+    async function registerNewUser() {
+      const userVal = document.getElementById('username').value.trim();
+      const passVal = document.getElementById('password').value.trim();
+      const errDiv = document.getElementById('loginError');
+
+      if (!userVal || !passVal) {
+        errDiv.textContent = 'Preencha usuário e senha para cadastrar!';
+        return;
+      }
+
+      try {
+        const dbRef = ref(db);
+        const snapshot = await get(child(dbRef, 'registros'));
+
+        if (snapshot.exists()) {
+          const registros = snapshot.val();
+          const jaExiste = Object.values(registros).some(item => item.usuario === userVal);
+          if (jaExiste) {
+            errDiv.textContent = 'Este nome de usuário já existe!';
+            return;
+          }
+        }
+
+        const novoRegistroRef = push(ref(db, 'registros'));
+        await set(novoRegistroRef, {
+          usuario: userVal,
+          senha: passVal,
+          tipo: 'usuario',
+          timestamp: new Date().toISOString()
+        });
+
+        errDiv.textContent = '';
+        window.currentUser = userVal;
+        window.isAdmin = false;
+
+        if (!window.playerData[window.currentUser]) {
+          window.playerData[window.currentUser] = { leftItems: [], rightItems: [] };
+        }
+
+        if (window.startApp) window.startApp(false);
+        else console.error('startApp não definido');
+
+        window.showToast('Usuário cadastrado com sucesso!', 'success');
+      } catch (error) {
+        console.error('Erro no cadastro:', error);
+        errDiv.textContent = 'Erro ao cadastrar no banco de dados.';
+      }
+    }
+
+    // ================================================================
+    // EVENTOS
+    // ================================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('loginBtn').addEventListener('click', login);
+      document.getElementById('registerBtn').addEventListener('click', registerNewUser);
+
+      document.getElementById('password').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') login();
+      });
+    });
+
+    window.login = login;
+    window.registerNewUser = registerNewUser;
+  </script>
+
+  <!-- ============================================================= -->
   <!-- SCRIPT PRINCIPAL com integração Firebase (via módulo)          -->
   <!-- ============================================================= -->
   <script>
@@ -2185,8 +2378,11 @@
       dom.statPlayers.textContent = players.length;
       dom.statItems.textContent = renamedItems.length;
       dom.statLastUpdate.textContent = localStorage.getItem('dragonSoul_lastUpdate') || 'Nunca';
-      // Espaço usado agora é irrelevante, mas mantido para compatibilidade
       const size = new Blob([JSON.stringify(localStorage)]).size;
       dom.statStorage.textContent = (size / 1024).toFixed(1) + ' KB';
       dom.storageSize.textContent = (size / 1024).toFixed(1) + ' KB';
-      dom.lastUpdate.textContent = localStorage
+      dom.lastUpdate.textContent = localStorage.getItem('dragonSoul_lastUpdate') || 'Nunca';
+    }
+  </script>
+</body>
+</html>
