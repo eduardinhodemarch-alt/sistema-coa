@@ -1530,28 +1530,107 @@
     ];
 
     // ====================================================================
-    // 2. ITENS (com localStorage)
+    // 2. JOGADORES PADRÃO
     // ====================================================================
-    function loadItems() {
-      const stored = localStorage.getItem('dragonSoul_items');
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          return DEFAULT_ITEMS.map((def, idx) => ({
-            ...def,
-            value: parsed[idx] !== undefined ? parsed[idx] : def.value
+    const DEFAULT_PLAYERS = [
+      { name: 'Schneiideer', power: '6.2M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'lucasrc09', power: '6.1M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Biancalazuli019 (mudinho)', power: '5.6M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Japodealmossah2', power: '5.5M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'darkizin_084', power: '5.13M (Transformado)', discord: '', inactive: 'não', participation: 0 },
+      { name: 'DragonSlayer (ptkrvs123)', power: '5.1M (Transformado)', discord: '', inactive: 'não', participation: 0 },
+      { name: 'yegsjefxjjdhg6353 (Kazuki/russo)', power: '4.5M (Transformado)', discord: '', inactive: 'não', participation: 0 },
+      { name: 'マクドーズ (@Biel)', power: '274k Base / 4M Max', discord: '', inactive: 'não', participation: 0 },
+      { name: 'FazUely', power: '3.75M (Transformado)', discord: '', inactive: 'não', participation: 0 },
+      { name: 'PEDRIN_123130', power: '3.6M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'batata_00155', power: '3.4M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'cNzk', power: '3M a 4M (Transformado)', discord: '', inactive: 'não', participation: 0 },
+      { name: 'SementinhaDoMal', power: '3.3M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Bernardo (aak2xv89)', power: '3.3M (Transformado)', discord: '', inactive: 'não', participation: 0 },
+      { name: 'M4a1i23 (Ezio)', power: '3.25M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'OCB_OSVALDO', power: '3.10M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Ikki (KKRECO)', power: '3.00M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'xxxrodridoxxx', power: '3M (Transformado)', discord: '', inactive: 'não', participation: 0 },
+      { name: 'bielrenovado01', power: '2.6M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Roblox123rl2 (Goat supremo)', power: '310k Base / 2.6M Max', discord: '', inactive: 'não', participation: 0 },
+      { name: 'rip_proprei0', power: '2.5M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'PedroPaulo_MC', power: '2.44M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'VITORFAKEGD2 (Gen)', power: '2.4M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'bulk_bogan', power: '2.4M (Transformado)', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Cain', power: '2.0M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'ITADORITOS4002', power: '1.2M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'WraithBeast2007', power: '1.2M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Subadmxdragon', power: '1.1M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Winter_Nii', power: '100k (Transformado)', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Unk_butcher07', power: '35k', discord: '', inactive: 'não', participation: 0 }
+    ];
+
+    // ====================================================================
+    // 3. VARIÁVEIS GLOBAIS (serão preenchidas pelo Firebase)
+    // ====================================================================
+    let items = [];
+    let players = [];
+
+    // ====================================================================
+    // 4. FUNÇÕES DE PERSISTÊNCIA (AGORA USAM FIREBASE)
+    //    As funções mantêm o mesmo nome e assinatura, mas a implementação
+    //    foi alterada para gravar/ler no Firebase em vez do localStorage.
+    // ====================================================================
+
+    async function loadItems() {
+      try {
+        const data = await window.loadItemsFromFirebase();
+        if (data && Array.isArray(data)) {
+          // Garante que cada item tenha name, value, demand
+          return data.map(item => ({
+            name: item.name || '',
+            value: item.value || 0,
+            demand: item.demand || ''
           }));
-        } catch (e) {}
+        }
+      } catch (e) {
+        console.warn('Erro ao carregar itens do Firebase:', e);
       }
+      // Fallback para os valores padrão
       return DEFAULT_ITEMS.map(i => ({ ...i }));
     }
 
-    function saveItems(items) {
-      localStorage.setItem('dragonSoul_items', JSON.stringify(items.map(i => i.value)));
+    function saveItems(itemsArray) {
+      window.saveItemsToFirebase(itemsArray).catch(err => {
+        console.error('Erro ao salvar itens no Firebase:', err);
+        showToast('Erro ao salvar itens no Firebase', 'error');
+      });
     }
 
-    let items = loadItems();
+    async function loadPlayers() {
+      try {
+        const data = await window.loadPlayersFromFirebase();
+        if (data && Array.isArray(data)) {
+          return data.map(p => ({
+            name: p.name || '',
+            power: p.power || '',
+            discord: p.discord || '',
+            inactive: p.inactive || 'não',
+            participation: p.participation !== undefined ? p.participation : 0
+          }));
+        }
+      } catch (e) {
+        console.warn('Erro ao carregar jogadores do Firebase:', e);
+      }
+      // Fallback para os jogadores padrão
+      return DEFAULT_PLAYERS.map(p => ({ ...p }));
+    }
 
+    function savePlayers(playersArray) {
+      window.savePlayersToFirebase(playersArray).catch(err => {
+        console.error('Erro ao salvar jogadores no Firebase:', err);
+        showToast('Erro ao salvar jogadores no Firebase', 'error');
+      });
+    }
+
+    // ====================================================================
+    // 5. DEMAIS FUNÇÕES (RENAMED ITEMS, SET MAP, ETC)
+    // ====================================================================
     function renameSetComponents(arr) {
       const renamed = [];
       let currentSet = null;
@@ -1593,8 +1672,8 @@
       return renamed;
     }
 
-    let renamedItems = renameSetComponents(items);
-    renamedItems.sort((a, b) => a.name.localeCompare(b.name));
+    let renamedItems = [];
+    let setComponents = new Map();
 
     function buildSetMap(arr) {
       const map = new Map();
@@ -1614,48 +1693,15 @@
       }
       return map;
     }
-    let setComponents = buildSetMap(renamedItems);
 
-    // ====================================================================
-    // 3. JOGADORES
-    // ====================================================================
-    const DEFAULT_PLAYERS = [
-      { name: 'Vettzn', power: '5.2M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'BiancaUchiha0195', power: '5.5M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Hasdraives123', power: '9.3M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Enzo', power: '3M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Cain', power: '3M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Kazuki', power: '2M', discord: '', inactive: 'não', participation: 0 }
-    ];
-
-    function loadPlayers() {
-      const stored = localStorage.getItem('dragonSoul_players');
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          return parsed.map(p => ({
-            ...p,
-            inactive: p.inactive || 'não',
-            participation: p.participation !== undefined ? p.participation : 0
-          }));
-        } catch (e) {}
-      }
-      return [...DEFAULT_PLAYERS];
+    function rebuildRenamedAndSets() {
+      renamedItems = renameSetComponents(items);
+      renamedItems.sort((a, b) => a.name.localeCompare(b.name));
+      setComponents = buildSetMap(renamedItems);
     }
 
-    function savePlayers(players) {
-      localStorage.setItem('dragonSoul_players', JSON.stringify(players));
-    }
-    let players = loadPlayers();
-
     // ====================================================================
-    // 4. AUTENTICAÇÃO via Firebase (gerenciada pelo módulo)
-    //    As variáveis window.currentUser e window.isAdmin são definidas
-    //    pelo módulo Firebase após o login.
-    // ====================================================================
-
-    // ====================================================================
-    // 5. ESTADO DA CALCULADORA (por jogador)
+    // 6. ESTADO DA CALCULADORA (por jogador) – permanece em localStorage
     // ====================================================================
     function loadPlayerData(username) {
       const key = 'dragonSoul_calc_' + username;
@@ -1675,7 +1721,7 @@
     const dom = {};
 
     // ====================================================================
-    // 6. REFERÊNCIAS DOM
+    // 7. REFERÊNCIAS DOM
     // ====================================================================
     function initDomRefs() {
       dom.a = document.getElementById('a');
@@ -1731,7 +1777,7 @@
     }
 
     // ====================================================================
-    // 7. FUNÇÕES DA CALCULADORA
+    // 8. FUNÇÕES DA CALCULADORA (inalteradas)
     // ====================================================================
     function getCurrentData() {
       const user = window.currentUser;
@@ -1820,7 +1866,7 @@
     }
 
     // ====================================================================
-    // 8. PROMOÇÃO
+    // 9. PROMOÇÃO (inalterada)
     // ====================================================================
     function generatePromocao() {
       const responsavel = dom.promoResponsavel.value.trim() || 'Não informado';
@@ -1891,7 +1937,7 @@
     }
 
     // ====================================================================
-    // 9. POPULAR SELECTS E SUGESTÕES
+    // 10. POPULAR SELECTS E SUGESTÕES
     // ====================================================================
     function populateSelects() {
       dom.a.innerHTML = '';
@@ -1926,7 +1972,7 @@
     }
 
     // ====================================================================
-    // 10. BUSCA COM SUGESTÕES
+    // 11. BUSCA COM SUGESTÕES (inalterada)
     // ====================================================================
     function setupSearch() {
       function handleInput(input, side) {
@@ -1975,7 +2021,7 @@
     }
 
     // ====================================================================
-    // 11. JOGADORES
+    // 12. JOGADORES
     // ====================================================================
     function renderPlayers() {
       const tbody = dom.playersBody;
@@ -2073,7 +2119,7 @@
     }
 
     // ====================================================================
-    // 12. EDIÇÃO DE ITENS (ADM)
+    // 13. EDIÇÃO DE ITENS (ADM)
     // ====================================================================
     function renderEditItems() {
       const container = dom.editItemsContainer;
@@ -2094,10 +2140,11 @@
       const val = parseInt(input.value);
       if (isNaN(val) || val < 0) { showToast('Valor inválido.', 'error'); return; }
       renamedItems[idx].value = val;
+      // Atualiza o array original `items` também
       const origName = renamedItems[idx].name;
-      const origIdx = DEFAULT_ITEMS.findIndex(d => d.name === origName);
-      if (origIdx !== -1) { items[origIdx].value = val;
-        saveItems(items); }
+      const origItem = items.find(d => d.name === origName);
+      if (origItem) origItem.value = val;
+      saveItems(items);
       populateSelects();
       updateAll();
       renderEditItems();
@@ -2108,10 +2155,10 @@
       const origName = renamedItems[idx].name;
       const def = DEFAULT_ITEMS.find(d => d.name === origName);
       if (def) {
-        const origIdx = items.findIndex(d => d.name === origName);
-        if (origIdx !== -1) { items[origIdx].value = def.value;
-          saveItems(items); }
+        const origItem = items.find(d => d.name === origName);
+        if (origItem) origItem.value = def.value;
         renamedItems[idx].value = def.value;
+        saveItems(items);
         populateSelects();
         updateAll();
         renderEditItems();
@@ -2123,9 +2170,7 @@
       if (!confirm('Restaurar todos os valores para o padrão?')) return;
       items = DEFAULT_ITEMS.map(i => ({ ...i }));
       saveItems(items);
-      renamedItems = renameSetComponents(items);
-      renamedItems.sort((a, b) => a.name.localeCompare(b.name));
-      setComponents = buildSetMap(renamedItems);
+      rebuildRenamedAndSets();
       populateSelects();
       populateSuggestions();
       updateAll();
@@ -2134,505 +2179,14 @@
     }
 
     // ====================================================================
-    // 13. DASHBOARD E SISTEMA
+    // 14. DASHBOARD E SISTEMA
     // ====================================================================
     function updateDashboard() {
       dom.statPlayers.textContent = players.length;
       dom.statItems.textContent = renamedItems.length;
       dom.statLastUpdate.textContent = localStorage.getItem('dragonSoul_lastUpdate') || 'Nunca';
+      // Espaço usado agora é irrelevante, mas mantido para compatibilidade
       const size = new Blob([JSON.stringify(localStorage)]).size;
       dom.statStorage.textContent = (size / 1024).toFixed(1) + ' KB';
       dom.storageSize.textContent = (size / 1024).toFixed(1) + ' KB';
-      dom.lastUpdate.textContent = localStorage.getItem('dragonSoul_lastUpdate') || 'Nunca';
-    }
-
-    function updateStorageInfo() {
-      const size = new Blob([JSON.stringify(localStorage)]).size;
-      dom.storageSize.textContent = (size / 1024).toFixed(1) + ' KB';
-      dom.statStorage.textContent = (size / 1024).toFixed(1) + ' KB';
-    }
-
-    function setLastUpdate() {
-      const now = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-      localStorage.setItem('dragonSoul_lastUpdate', now);
-      updateDashboard();
-    }
-
-    // ====================================================================
-    // 14. COMPARTILHAMENTO E BACKUP
-    // ====================================================================
-    function getFullData() {
-      return {
-        players: players,
-        items: items.map(i => ({ name: i.name, value: i.value })),
-        lastUpdate: localStorage.getItem('dragonSoul_lastUpdate') || new Date().toISOString()
-      };
-    }
-
-    function exportFullData() {
-      const data = getFullData();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'C.O.A_export_' + new Date().toISOString().slice(0, 10) + '.json';
-      a.click();
-      URL.revokeObjectURL(url);
-      setLastUpdate();
-      showToast('Lista exportada!', 'success');
-    }
-
-    function importFullData(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const data = JSON.parse(e.target.result);
-          if (!data.players || !data.items) throw new Error('Estrutura inválida');
-          if (!Array.isArray(data.players) || !Array.isArray(data.items)) throw new Error('Dados inválidos');
-          if (!confirm('Importar dados? Isso substituirá jogadores e valores de itens.')) return;
-          players = data.players.map(p => ({ ...p, inactive: p.inactive || 'não', participation: p.participation !==
-              undefined ? p.participation : 0 }));
-          savePlayers(players);
-          const newItems = DEFAULT_ITEMS.map(def => {
-            const found = data.items.find(it => it.name === def.name);
-            return found ? { ...def, value: found.value } : { ...def };
-          });
-          items = newItems;
-          saveItems(items);
-          renamedItems = renameSetComponents(items);
-          renamedItems.sort((a, b) => a.name.localeCompare(b.name));
-          setComponents = buildSetMap(renamedItems);
-          populateSelects();
-          populateSuggestions();
-          updateAll();
-          renderPlayers();
-          renderEditItems();
-          setLastUpdate();
-          showToast('Importação concluída!', 'success');
-        } catch (err) {
-          showToast('Erro ao importar: ' + err.message, 'error');
-        }
-      };
-      reader.readAsText(file);
-      event.target.value = '';
-    }
-
-    function copyShareCode() {
-      const data = getFullData();
-      const json = JSON.stringify(data);
-      const base64 = btoa(unescape(encodeURIComponent(json)));
-      navigator.clipboard.writeText(base64).then(() => {
-        showToast('Código copiado!', 'success');
-      }).catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = base64;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        ta.remove();
-        showToast('Código copiado!', 'success');
-      });
-    }
-
-    function importShareCode() {
-      const input = document.getElementById('shareCodeInput');
-      const code = input.value.trim();
-      if (!code) { showToast('Cole um código Base64 no campo acima.', 'error'); return; }
-      try {
-        const json = decodeURIComponent(escape(atob(code)));
-        const data = JSON.parse(json);
-        if (!data.players || !data.items) throw new Error('Estrutura inválida');
-        if (!confirm('Importar dados do código? Isso substituirá jogadores e valores de itens.')) return;
-        players = data.players.map(p => ({ ...p, inactive: p.inactive || 'não', participation: p.participation !==
-            undefined ? p.participation : 0 }));
-        savePlayers(players);
-        const newItems = DEFAULT_ITEMS.map(def => {
-          const found = data.items.find(it => it.name === def.name);
-          return found ? { ...def, value: found.value } : { ...def };
-        });
-        items = newItems;
-        saveItems(items);
-        renamedItems = renameSetComponents(items);
-        renamedItems.sort((a, b) => a.name.localeCompare(b.name));
-        setComponents = buildSetMap(renamedItems);
-        populateSelects();
-        populateSuggestions();
-        updateAll();
-        renderPlayers();
-        renderEditItems();
-        setLastUpdate();
-        input.value = '';
-        showToast('Código importado!', 'success');
-      } catch (err) {
-        showToast('Erro ao importar código: ' + err.message, 'error');
-      }
-    }
-
-    function exportBackup() {
-      const data = getFullData();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'C.O.A_backup_' + new Date().toISOString().slice(0, 10) + '.json';
-      a.click();
-      URL.revokeObjectURL(url);
-      setLastUpdate();
-      showToast('Backup exportado!', 'success');
-    }
-
-    function restoreBackup(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const data = JSON.parse(e.target.result);
-          if (!data.players || !data.items) throw new Error('Estrutura inválida');
-          if (!confirm('Restaurar backup? Isso substituirá todos os dados atuais.')) return;
-          players = data.players.map(p => ({ ...p, inactive: p.inactive || 'não', participation: p.participation !==
-              undefined ? p.participation : 0 }));
-          savePlayers(players);
-          const newItems = DEFAULT_ITEMS.map(def => {
-            const found = data.items.find(it => it.name === def.name);
-            return found ? { ...def, value: found.value } : { ...def };
-          });
-          items = newItems;
-          saveItems(items);
-          renamedItems = renameSetComponents(items);
-          renamedItems.sort((a, b) => a.name.localeCompare(b.name));
-          setComponents = buildSetMap(renamedItems);
-          populateSelects();
-          populateSuggestions();
-          updateAll();
-          renderPlayers();
-          renderEditItems();
-          setLastUpdate();
-          showToast('Backup restaurado!', 'success');
-        } catch (err) {
-          showToast('Erro ao restaurar backup: ' + err.message, 'error');
-        }
-      };
-      reader.readAsText(file);
-      event.target.value = '';
-    }
-
-    function clearAllStorage() {
-      if (!confirm('⚠️ Tem certeza que deseja limpar todo o LocalStorage? Esta ação é irreversível.')) return;
-      if (!confirm('Última confirmação: todos os dados serão apagados.')) return;
-      localStorage.clear();
-      location.reload();
-    }
-
-    // ====================================================================
-    // 15. TOAST
-    // ====================================================================
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const el = document.createElement('div');
-      el.className = `toast ${type}`;
-      const icon = type === 'success' ? 'fa-check-circle' :
-        type === 'error' ? 'fa-circle-exclamation' :
-        'fa-circle-info';
-      el.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
-      container.appendChild(el);
-      setTimeout(() => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateX(20px)';
-        setTimeout(() => el.remove(), 400);
-      }, 3500);
-    }
-
-    // ====================================================================
-    // 16. NAVEGAÇÃO E SIDEBAR
-    // ====================================================================
-    const pageTitles = {
-      dashboard: { title: '📊 Dashboard', sub: 'Visão geral' },
-      calculadora: { title: '🧮 Calculadora', sub: 'Troca de itens' },
-      jogadores: { title: '👥 Jogadores', sub: 'Lista e gerenciamento' },
-      promocao: { title: '⭐ Promoção', sub: 'Gerar promoção' },
-      'edit-items': { title: '⚙️ Editar Itens', sub: 'Valores dos itens' },
-      sistema: { title: '🔧 Sistema', sub: 'Gerenciamento e backup' },
-    };
-
-    function navigateTo(page) {
-      document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-      document.getElementById('page-' + page).classList.add('active');
-      document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => el.classList.remove('active'));
-      document.querySelector(`.sidebar-nav .nav-item[data-page="${page}"]`).classList.add('active');
-      const cfg = pageTitles[page] || { title: page, sub: '' };
-      document.getElementById('pageTitle').textContent = cfg.title;
-      document.getElementById('pageSub').textContent = cfg.sub;
-      if (page === 'edit-items') renderEditItems();
-      if (page === 'jogadores') renderPlayers();
-      if (page === 'promocao') {
-        if (window.currentUser && window.isAdmin) {
-          dom.promoResponsavel.value = window.currentUser;
-        }
-        updatePlayerSuggestions();
-      }
-      if (page === 'dashboard' || page === 'sistema') { updateDashboard();
-        updateStorageInfo(); }
-      if (window.innerWidth <= 768 && dom.sidebar.classList.contains('expanded')) {
-        toggleSidebar();
-      }
-    }
-
-    function toggleSidebar() {
-      const expanded = dom.sidebar.classList.toggle('expanded');
-      dom.main.classList.toggle('expanded', expanded);
-      dom.toggleIcon.className = expanded ? 'fas fa-chevron-left' : 'fas fa-chevron-right';
-      dom.sidebarToggle.querySelector('span').textContent = expanded ? 'Recolher' : 'Expandir';
-    }
-
-    // ====================================================================
-    // 17. INICIALIZAÇÃO (DOM pronto)
-    // ====================================================================
-    document.addEventListener('DOMContentLoaded', function() {
-      initDomRefs();
-      populateSelects();
-      populateSuggestions();
-      setupSearch();
-
-      // Evento de logout
-      document.getElementById('logoutBtn').addEventListener('click', function() {
-        if (window.currentUser) {
-          const data = getCurrentData();
-          if (data) savePlayerData(window.currentUser, data);
-        }
-        window.currentUser = null;
-        window.isAdmin = false;
-        document.getElementById('appContainer').style.display = 'none';
-        document.getElementById('loginScreen').style.display = 'block';
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
-        document.getElementById('loginError').textContent = '';
-        showToast('Logout realizado.', 'info');
-      });
-
-      // Eventos de outros botões
-      document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
-      dom.sidebarToggle.addEventListener('click', toggleSidebar);
-      dom.generatePromoBtn.addEventListener('click', generatePromocao);
-      dom.copyPromoBtn.addEventListener('click', copyPromo);
-      dom.downloadPromoTxtBtn.addEventListener('click', downloadPromoTxt);
-      dom.clearPromoBtn.addEventListener('click', clearPromo);
-      dom.saveEditPlayerBtn.addEventListener('click', saveEditPlayer);
-      dom.modalOverlay.addEventListener('click', (e) => { if (e.target === dom.modalOverlay) closeModal(); });
-
-      document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
-        el.addEventListener('click', (e) => {
-          e.preventDefault();
-          navigateTo(el.dataset.page);
-        });
-      });
-
-      // Inicialmente, mostrar tela de login
-      document.getElementById('loginScreen').style.display = 'block';
-      document.getElementById('appContainer').style.display = 'none';
-      updateDashboard();
-      renderPlayers();
-    });
-
-    // Expor funções globais para uso no HTML e no módulo Firebase
-    window.addItem = addItem;
-    window.removeItem = removeItem;
-    window.clearSide = clearSide;
-    window.addSet = addSet;
-    window.toggleSuggest = toggleSuggest;
-    window.openEditModal = openEditModal;
-    window.closeModal = closeModal;
-    window.saveEditPlayer = saveEditPlayer;
-    window.deletePlayer = deletePlayer;
-    window.saveItemValue = saveItemValue;
-    window.resetItemValue = resetItemValue;
-    window.resetAllItems = resetAllItems;
-    window.navigateTo = navigateTo;
-    window.exportFullData = exportFullData;
-    window.importFullData = importFullData;
-    window.copyShareCode = copyShareCode;
-    window.importShareCode = importShareCode;
-    window.exportBackup = exportBackup;
-    window.restoreBackup = restoreBackup;
-    window.clearAllStorage = clearAllStorage;
-    window.generatePromocao = generatePromocao;
-    window.copyPromo = copyPromo;
-    window.downloadPromoTxt = downloadPromoTxt;
-    window.clearPromo = clearPromo;
-    window.toggleSidebar = toggleSidebar;
-    window.showToast = showToast;
-    window.updateAll = updateAll;
-    window.renderPlayers = renderPlayers;
-    window.renderEditItems = renderEditItems;
-    window.setLastUpdate = setLastUpdate;
-    window.getCurrentData = getCurrentData;
-    window.savePlayerData = savePlayerData;
-    window.playerData = playerData;
-    window.startApp = function(isAdmin) {
-      // Esta função é chamada pelo módulo Firebase após login bem-sucedido
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('appContainer').style.display = 'block';
-      document.getElementById('userDisplay').innerHTML = `Jogador: <strong>${window.currentUser}</strong>${isAdmin ? ' (ADM)' : ''}`;
-      document.querySelectorAll('.adm-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
-      if (!playerData[window.currentUser]) playerData[window.currentUser] = { leftItems: [], rightItems: [] };
-      updateAll();
-      renderPlayers();
-      if (isAdmin) renderEditItems();
-      navigateTo('dashboard');
-      setLastUpdate();
-      showToast(`Bem-vindo, ${window.currentUser}!`, 'success');
-    };
-  </script>
-
-  <!-- ============================================================= -->
-  <!-- MÓDULO FIREBASE (autenticação e banco de dados)                -->
-  <!-- ============================================================= -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, child, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    // ================================================================
-    // CONFIGURAÇÃO DO FIREBASE (apenas databaseURL)
-    // ================================================================
-    const firebaseConfig = {
-      databaseURL: "https://sisteam-coa-default-rtdb.firebaseio.com/"
-      // Se precisar de outras credenciais, adicione-as aqui (apiKey, authDomain, etc.)
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    // Lista de administradores fixos (opcional, mas mantida para compatibilidade)
-    const ADM_USERS = ['CoA', 'BiancaUchiha019', 'vettzn', 'Rapha'];
-
-    // ================================================================
-    // FUNÇÃO DE LOGIN
-    // ================================================================
-    async function login() {
-      const userVal = document.getElementById('username').value.trim();
-      const passVal = document.getElementById('password').value.trim();
-      const errDiv = document.getElementById('loginError');
-
-      if (!userVal || !passVal) {
-        errDiv.textContent = 'Preencha usuário e senha!';
-        return;
-      }
-
-      errDiv.textContent = 'Verificando...';
-
-      try {
-        const dbRef = ref(db);
-        const snapshot = await get(child(dbRef, 'registros'));
-
-        if (snapshot.exists()) {
-          const registros = snapshot.val();
-          let userEncontrado = null;
-
-          Object.keys(registros).forEach(key => {
-            const item = registros[key];
-            if (item.usuario === userVal && item.senha === passVal) {
-              userEncontrado = item;
-            }
-          });
-
-          if (userEncontrado) {
-            errDiv.textContent = '';
-            window.currentUser = userEncontrado.usuario;
-            // Admin se estiver na lista ADM_USERS ou se o campo tipo for 'admin'
-            const isAdmin = ADM_USERS.includes(window.currentUser) || userEncontrado.tipo === 'admin';
-            window.isAdmin = isAdmin;
-
-            // Inicializa dados do jogador
-            if (!window.playerData[window.currentUser]) {
-              window.playerData[window.currentUser] = { leftItems: [], rightItems: [] };
-            }
-
-            // Chama a função startApp exposta pelo script principal
-            if (window.startApp) window.startApp(isAdmin);
-            else console.error('startApp não definido');
-          } else {
-            errDiv.textContent = 'Usuário ou senha incorretos!';
-          }
-        } else {
-          errDiv.textContent = 'Nenhum usuário cadastrado no banco.';
-        }
-      } catch (error) {
-        console.error('Erro no login:', error);
-        errDiv.textContent = 'Erro ao conectar com o banco de dados. Verifique a URL ou as regras de segurança.';
-      }
-    }
-
-    // ================================================================
-    // FUNÇÃO DE CADASTRO
-    // ================================================================
-    async function registerNewUser() {
-      const userVal = document.getElementById('username').value.trim();
-      const passVal = document.getElementById('password').value.trim();
-      const errDiv = document.getElementById('loginError');
-
-      if (!userVal || !passVal) {
-        errDiv.textContent = 'Preencha usuário e senha para cadastrar!';
-        return;
-      }
-
-      try {
-        const dbRef = ref(db);
-        const snapshot = await get(child(dbRef, 'registros'));
-
-        if (snapshot.exists()) {
-          const registros = snapshot.val();
-          const jaExiste = Object.values(registros).some(item => item.usuario === userVal);
-          if (jaExiste) {
-            errDiv.textContent = 'Este nome de usuário já existe!';
-            return;
-          }
-        }
-
-        // Cria novo registro
-        const novoRegistroRef = push(ref(db, 'registros'));
-        await set(novoRegistroRef, {
-          usuario: userVal,
-          senha: passVal,
-          tipo: 'usuario', // Por padrão, usuário comum
-          timestamp: new Date().toISOString()
-        });
-
-        errDiv.textContent = '';
-        window.currentUser = userVal;
-        window.isAdmin = false;
-
-        if (!window.playerData[window.currentUser]) {
-          window.playerData[window.currentUser] = { leftItems: [], rightItems: [] };
-        }
-
-        // Chama startApp para iniciar a sessão
-        if (window.startApp) window.startApp(false);
-        else console.error('startApp não definido');
-
-        window.showToast('Usuário cadastrado com sucesso!', 'success');
-      } catch (error) {
-        console.error('Erro no cadastro:', error);
-        errDiv.textContent = 'Erro ao cadastrar no banco de dados.';
-      }
-    }
-
-    // ================================================================
-    // EVENTOS
-    // ================================================================
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('loginBtn').addEventListener('click', login);
-      document.getElementById('registerBtn').addEventListener('click', registerNewUser);
-
-      document.getElementById('password').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') login();
-      });
-    });
-
-    // Expor funções para uso global (opcional)
-    window.login = login;
-    window.registerNewUser = registerNewUser;
-  </script>
-</body>
-</html>
+      dom.lastUpdate.textContent = localStorage
