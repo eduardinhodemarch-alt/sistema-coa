@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
-    /* ===== RESET E BASE ===== */
+    /* ===== RESET E BASE (mantido inalterado) ===== */
     *,
     *::before,
     *::after {
@@ -1203,204 +1203,23 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- ============================================================= -->
-  <!-- MÓDULO FIREBASE (autenticação + CRUD)                         -->
+  <!-- JAVASCRIPT – TUDO EM UM ÚNICO BLOCO (sem módulos)            -->
   <!-- ============================================================= -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get, child, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"></script>
 
-    // ================================================================
-    // CONFIGURAÇÃO DO FIREBASE
-    // ================================================================
+  <script>
+    // ====================================================================
+    // 1. CONFIGURAÇÃO FIREBASE
+    // ====================================================================
     const firebaseConfig = {
       databaseURL: "https://sisteam-coa-default-rtdb.firebaseio.com/"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    // ================================================================
-    // FUNÇÕES CRUD PARA ITENS E JOGADORES (expostas globalmente)
-    // ================================================================
-    window.loadItemsFromFirebase = async function() {
-      try {
-        const snapshot = await get(child(ref(db), 'itens'));
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          return Array.isArray(data) ? data : Object.values(data);
-        }
-        return null;
-      } catch (e) {
-        console.error('Erro ao carregar itens:', e);
-        return null;
-      }
-    };
-
-    window.saveItemsToFirebase = async function(items) {
-      try {
-        await set(ref(db, 'itens'), items);
-      } catch (e) {
-        console.error('Erro ao salvar itens:', e);
-        throw e;
-      }
-    };
-
-    window.loadPlayersFromFirebase = async function() {
-      try {
-        const snapshot = await get(child(ref(db), 'jogadores'));
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          return Array.isArray(data) ? data : Object.values(data);
-        }
-        return null;
-      } catch (e) {
-        console.error('Erro ao carregar jogadores:', e);
-        return null;
-      }
-    };
-
-    window.savePlayersToFirebase = async function(players) {
-      try {
-        await set(ref(db, 'jogadores'), players);
-      } catch (e) {
-        console.error('Erro ao salvar jogadores:', e);
-        throw e;
-      }
-    };
-
-    // ================================================================
-    // LISTA DE ADMINISTRADORES
-    // ================================================================
-    const ADM_USERS = ['CoA', 'BiancaUchiha019', 'vettzn', 'Rapha'];
-
-    // ================================================================
-    // FUNÇÃO DE LOGIN
-    // ================================================================
-    async function login() {
-      const userVal = document.getElementById('username').value.trim();
-      const passVal = document.getElementById('password').value.trim();
-      const errDiv = document.getElementById('loginError');
-
-      if (!userVal || !passVal) {
-        errDiv.textContent = 'Preencha usuário e senha!';
-        return;
-      }
-
-      errDiv.textContent = 'Verificando...';
-
-      try {
-        const dbRef = ref(db);
-        const snapshot = await get(child(dbRef, 'registros'));
-
-        if (snapshot.exists()) {
-          const registros = snapshot.val();
-          let userEncontrado = null;
-
-          Object.keys(registros).forEach(key => {
-            const item = registros[key];
-            if (item.usuario === userVal && item.senha === passVal) {
-              userEncontrado = item;
-            }
-          });
-
-          if (userEncontrado) {
-            errDiv.textContent = '';
-            window.currentUser = userEncontrado.usuario;
-            const isAdmin = ADM_USERS.includes(window.currentUser) || userEncontrado.tipo === 'admin';
-            window.isAdmin = isAdmin;
-
-            if (!window.playerData[window.currentUser]) {
-              window.playerData[window.currentUser] = { leftItems: [], rightItems: [] };
-            }
-
-            if (window.startApp) window.startApp(isAdmin);
-            else console.error('startApp não definido');
-          } else {
-            errDiv.textContent = 'Usuário ou senha incorretos!';
-          }
-        } else {
-          errDiv.textContent = 'Nenhum usuário cadastrado no banco.';
-        }
-      } catch (error) {
-        console.error('Erro no login:', error);
-        errDiv.textContent = 'Erro ao conectar com o banco de dados.';
-      }
-    }
-
-    // ================================================================
-    // FUNÇÃO DE CADASTRO
-    // ================================================================
-    async function registerNewUser() {
-      const userVal = document.getElementById('username').value.trim();
-      const passVal = document.getElementById('password').value.trim();
-      const errDiv = document.getElementById('loginError');
-
-      if (!userVal || !passVal) {
-        errDiv.textContent = 'Preencha usuário e senha para cadastrar!';
-        return;
-      }
-
-      try {
-        const dbRef = ref(db);
-        const snapshot = await get(child(dbRef, 'registros'));
-
-        if (snapshot.exists()) {
-          const registros = snapshot.val();
-          const jaExiste = Object.values(registros).some(item => item.usuario === userVal);
-          if (jaExiste) {
-            errDiv.textContent = 'Este nome de usuário já existe!';
-            return;
-          }
-        }
-
-        const novoRegistroRef = push(ref(db, 'registros'));
-        await set(novoRegistroRef, {
-          usuario: userVal,
-          senha: passVal,
-          tipo: 'usuario',
-          timestamp: new Date().toISOString()
-        });
-
-        errDiv.textContent = '';
-        window.currentUser = userVal;
-        window.isAdmin = false;
-
-        if (!window.playerData[window.currentUser]) {
-          window.playerData[window.currentUser] = { leftItems: [], rightItems: [] };
-        }
-
-        if (window.startApp) window.startApp(false);
-        else console.error('startApp não definido');
-
-        window.showToast('Usuário cadastrado com sucesso!', 'success');
-      } catch (error) {
-        console.error('Erro no cadastro:', error);
-        errDiv.textContent = 'Erro ao cadastrar no banco de dados.';
-      }
-    }
-
-    // ================================================================
-    // EVENTOS
-    // ================================================================
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('loginBtn').addEventListener('click', login);
-      document.getElementById('registerBtn').addEventListener('click', registerNewUser);
-
-      document.getElementById('password').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') login();
-      });
-    });
-
-    window.login = login;
-    window.registerNewUser = registerNewUser;
-  </script>
-
-  <!-- ============================================================= -->
-  <!-- SCRIPT PRINCIPAL com integração Firebase (via módulo)          -->
-  <!-- ============================================================= -->
-  <script>
     // ====================================================================
-    // 1. DADOS PADRÃO (ITENS) - (lista completa mantida)
+    // 2. DADOS PADRÃO (ITENS) – usados para reset e fallback
     // ====================================================================
     const DEFAULT_ITEMS = [
       { name: 'Sayen Drip V', value: 180, demand: 'Medium-High' },
@@ -1723,121 +1542,178 @@
     ];
 
     // ====================================================================
-    // 2. JOGADORES PADRÃO
+    // 3. VARIÁVEIS GLOBAIS
     // ====================================================================
-    const DEFAULT_PLAYERS = [
-      { name: 'Schneiideer', power: '6.2M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'lucasrc09', power: '6.1M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Biancalazuli019 (mudinho)', power: '5.6M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Japodealmossah2', power: '5.5M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'darkizin_084', power: '5.13M (Transformado)', discord: '', inactive: 'não', participation: 0 },
-      { name: 'DragonSlayer (ptkrvs123)', power: '5.1M (Transformado)', discord: '', inactive: 'não', participation: 0 },
-      { name: 'yegsjefxjjdhg6353 (Kazuki/russo)', power: '4.5M (Transformado)', discord: '', inactive: 'não', participation: 0 },
-      { name: 'マクドーズ (@Biel)', power: '274k Base / 4M Max', discord: '', inactive: 'não', participation: 0 },
-      { name: 'FazUely', power: '3.75M (Transformado)', discord: '', inactive: 'não', participation: 0 },
-      { name: 'PEDRIN_123130', power: '3.6M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'batata_00155', power: '3.4M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'cNzk', power: '3M a 4M (Transformado)', discord: '', inactive: 'não', participation: 0 },
-      { name: 'SementinhaDoMal', power: '3.3M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Bernardo (aak2xv89)', power: '3.3M (Transformado)', discord: '', inactive: 'não', participation: 0 },
-      { name: 'M4a1i23 (Ezio)', power: '3.25M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'OCB_OSVALDO', power: '3.10M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Ikki (KKRECO)', power: '3.00M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'xxxrodridoxxx', power: '3M (Transformado)', discord: '', inactive: 'não', participation: 0 },
-      { name: 'bielrenovado01', power: '2.6M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Roblox123rl2 (Goat supremo)', power: '310k Base / 2.6M Max', discord: '', inactive: 'não', participation: 0 },
-      { name: 'rip_proprei0', power: '2.5M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'PedroPaulo_MC', power: '2.44M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'VITORFAKEGD2 (Gen)', power: '2.4M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'bulk_bogan', power: '2.4M (Transformado)', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Cain', power: '2.0M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'ITADORITOS4002', power: '1.2M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'WraithBeast2007', power: '1.2M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Subadmxdragon', power: '1.1M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Winter_Nii', power: '100k (Transformado)', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Unk_butcher07', power: '35k', discord: '', inactive: 'não', participation: 0 }
-    ];
+    let currentUser = null;          // nome de usuário logado
+    let currentUserId = null;        // chave Firebase do usuário
+    let isAdmin = false;
+
+    let players = [];               // array de objetos { id, nome, poder, discord, inativo, participacao }
+    let items = [];                // array de objetos { id, nome, valor, demand }
+
+    // Para a calculadora – itens renomeados (com nomes de sets concatenados)
+    let renamedItems = [];
+    let setComponents = new Map();
+
+    // Estado da calculadora por usuário (armazenado no localStorage)
+    const playerData = {};
+
+    // DOM references – cache para performance
+    const DOM = {};
 
     // ====================================================================
-    // 3. VARIÁVEIS GLOBAIS (serão preenchidas pelo Firebase)
+    // 4. UTILITÁRIOS (toast, modal, navegação, etc.)
     // ====================================================================
-    let items = [];
-    let players = [];
-
-    // ====================================================================
-    // 4. FUNÇÕES DE PERSISTÊNCIA (AGORA USAM FIREBASE)
-    //    As funções mantêm o mesmo nome e assinatura, mas a implementação
-    //    foi alterada para gravar/ler no Firebase em vez do localStorage.
-    // ====================================================================
-
-    async function loadItems() {
-      try {
-        const data = await window.loadItemsFromFirebase();
-        if (data && Array.isArray(data)) {
-          // Garante que cada item tenha name, value, demand
-          return data.map(item => ({
-            name: item.name || '',
-            value: item.value || 0,
-            demand: item.demand || ''
-          }));
-        }
-      } catch (e) {
-        console.warn('Erro ao carregar itens do Firebase:', e);
-      }
-      // Fallback para os valores padrão
-      return DEFAULT_ITEMS.map(i => ({ ...i }));
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
     }
 
-    function saveItems(itemsArray) {
-      window.saveItemsToFirebase(itemsArray).catch(err => {
-        console.error('Erro ao salvar itens no Firebase:', err);
-        showToast('Erro ao salvar itens no Firebase', 'error');
+    function openModal() {
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('active');
+    }
+
+    function navigateTo(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const target = document.getElementById(`page-${page}`);
+      if (target) target.classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const navItem = document.querySelector(`.nav-item[data-page="${page}"]`);
+      if (navItem) navItem.classList.add('active');
+      const titles = {
+        dashboard: '📊 Dashboard',
+        calculadora: '🧮 Calculadora',
+        jogadores: '👥 Jogadores',
+        promocao: '⭐ Promoção',
+        'edit-items': '✏️ Editar Itens',
+        sistema: '⚙️ Sistema'
+      };
+      document.getElementById('pageTitle').textContent = titles[page] || page;
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('expanded');
+      document.getElementById('mainContent').classList.toggle('expanded');
+      const icon = document.getElementById('toggleIcon');
+      icon.classList.toggle('fa-chevron-right');
+      icon.classList.toggle('fa-chevron-left');
+    }
+
+    // ====================================================================
+    // 5. FUNÇÕES DE PERSISTÊNCIA – FIREBASE (com onValue)
+    // ====================================================================
+
+    // Carrega itens em tempo real
+    function loadItemsRealtime() {
+      const itemsRef = db.ref('itens');
+      itemsRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          items = Object.entries(data).map(([id, obj]) => ({
+            id: id,
+            nome: obj.nome || obj.name || '',
+            valor: obj.valor || obj.value || 0,
+            demand: obj.demand || ''
+          }));
+        } else {
+          // Se não houver dados, cria a partir dos defaults
+          seedDefaultItems();
+          return;
+        }
+        // Reconstroi renamedItems e sets
+        rebuildRenamedAndSets();
+        // Atualiza interface
+        populateSelects();
+        populateSuggestions();
+        renderEditItems();
+        updateDashboard();
+        updateAll(); // recalcula totais
       });
     }
 
-    async function loadPlayers() {
-      try {
-        const data = await window.loadPlayersFromFirebase();
-        if (data && Array.isArray(data)) {
-          return data.map(p => ({
-            name: p.name || '',
-            power: p.power || '',
-            discord: p.discord || '',
-            inactive: p.inactive || 'não',
-            participation: p.participation !== undefined ? p.participation : 0
+    // Carrega jogadores em tempo real
+    function loadPlayersRealtime() {
+      const playersRef = db.ref('jogadores');
+      playersRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          players = Object.entries(data).map(([id, obj]) => ({
+            id: id,
+            nome: obj.nome || '',
+            poder: obj.poder || '',
+            discord: obj.discord || '',
+            inativo: obj.inativo || 'não',
+            participacao: obj.participacao !== undefined ? obj.participacao : 0
           }));
+        } else {
+          // Se não houver dados, cria a partir dos defaults
+          seedDefaultPlayers();
+          return;
         }
-      } catch (e) {
-        console.warn('Erro ao carregar jogadores do Firebase:', e);
-      }
-      // Fallback para os jogadores padrão
-      return DEFAULT_PLAYERS.map(p => ({ ...p }));
+        renderPlayers();
+        updateDashboard();
+        updatePlayerSuggestions();
+        // Atualiza a lista da promoção (datalist)
+        const datalist = document.getElementById('playerSuggestions');
+        datalist.innerHTML = players.map(p => `<option value="${p.nome}">`).join('');
+      });
     }
 
-    function savePlayers(playersArray) {
-      window.savePlayersToFirebase(playersArray).catch(err => {
-        console.error('Erro ao salvar jogadores no Firebase:', err);
-        showToast('Erro ao salvar jogadores no Firebase', 'error');
+    // Seeds iniciais (apenas se o nó estiver vazio)
+    function seedDefaultItems() {
+      // Verifica se já existem itens
+      db.ref('itens').once('value', (snap) => {
+        if (!snap.exists()) {
+          // Cria cada item com push
+          DEFAULT_ITEMS.forEach(item => {
+            db.ref('itens').push({
+              nome: item.name,
+              valor: item.value,
+              demand: item.demand
+            });
+          });
+          showToast('Itens padrão criados no Firebase.', 'success');
+        }
+      });
+    }
+
+    function seedDefaultPlayers() {
+      db.ref('jogadores').once('value', (snap) => {
+        if (!snap.exists()) {
+          DEFAULT_PLAYERS.forEach(p => {
+            db.ref('jogadores').push({
+              nome: p.name,
+              poder: p.power,
+              discord: p.discord || '',
+              inativo: p.inactive || 'não',
+              participacao: p.participation || 0
+            });
+          });
+          showToast('Jogadores padrão criados no Firebase.', 'success');
+        }
       });
     }
 
     // ====================================================================
-    // 5. DEMAIS FUNÇÕES (RENAMED ITEMS, SET MAP, ETC)
+    // 6. RENAME DE SETS E MAPA DE COMPONENTES (mesma lógica original)
     // ====================================================================
     function renameSetComponents(arr) {
       const renamed = [];
       let currentSet = null;
       for (const item of arr) {
-        const name = item.name.trim();
+        const name = item.nome.trim();
         const isSet = /Set/.test(name) || /Bundle/.test(name);
-        if (isSet && !name.includes('Back') && !name.includes('Hat') && !name.includes('Shirt') && !name.includes(
-            'Pants') && !name.includes('Shoes') && !name.includes('Head') && !name.includes('Cape') && !name
-          .includes('Wings') && !name.includes('Mask') && !name.includes('Bandana') && !name.includes('Headband') &&
-          !name.includes('Helmet') && !name.includes('Sling') && !name.includes('Monocle') && !name.includes(
-            'Necklace') && !name.includes('Face') && !name.includes('Neck') && !name.includes('Dress') && !name
-          .includes('Bucket') && !name.includes('Hair') && !name.includes('Arm Bands')) {
+        if (isSet && !name.includes('Back') && !name.includes('Hat') && !name.includes('Shirt') && !name.includes('Pants') && !name.includes('Shoes') && !name.includes('Head') && !name.includes('Cape') && !name.includes('Wings') && !name.includes('Mask') && !name.includes('Bandana') && !name.includes('Headband') && !name.includes('Helmet') && !name.includes('Sling') && !name.includes('Monocle') && !name.includes('Necklace') && !name.includes('Face') && !name.includes('Neck') && !name.includes('Dress') && !name.includes('Bucket') && !name.includes('Hair') && !name.includes('Arm Bands')) {
           currentSet = name;
-          renamed.push({ ...item, name });
+          renamed.push({ ...item, nome: name });
           continue;
         }
         if (currentSet && !isSet) {
@@ -1854,7 +1730,7 @@
             }
           }
           if (isGeneric) {
-            renamed.push({ ...item, name: currentSet + ' ' + name });
+            renamed.push({ ...item, nome: currentSet + ' ' + name });
           } else {
             renamed.push({ ...item });
           }
@@ -1865,20 +1741,16 @@
       return renamed;
     }
 
-    let renamedItems = [];
-    let setComponents = new Map();
-
     function buildSetMap(arr) {
       const map = new Map();
       for (let i = 0; i < arr.length; i++) {
         const it = arr[i];
-        if (/Set/.test(it.name) && !it.name.includes('Set ') && !it.name.includes('Set(') && !it.name.includes(
-            'Set (') && !it.name.includes('Set  ')) {
-          const key = it.name;
+        if (/Set/.test(it.nome) && !it.nome.includes('Set ') && !it.nome.includes('Set(') && !it.nome.includes('Set (') && !it.nome.includes('Set  ')) {
+          const key = it.nome;
           const comps = [];
           for (let j = i + 1; j < arr.length; j++) {
             const next = arr[j];
-            if (next.name.startsWith(key + ' ')) comps.push(j);
+            if (next.nome.startsWith(key + ' ')) comps.push(j);
             else break;
           }
           if (comps.length) map.set(key, comps);
@@ -1889,133 +1761,64 @@
 
     function rebuildRenamedAndSets() {
       renamedItems = renameSetComponents(items);
-      renamedItems.sort((a, b) => a.name.localeCompare(b.name));
+      renamedItems.sort((a, b) => a.nome.localeCompare(b.nome));
       setComponents = buildSetMap(renamedItems);
     }
 
     // ====================================================================
-    // 6. ESTADO DA CALCULADORA (por jogador) – permanece em localStorage
-    // ====================================================================
-    function loadPlayerData(username) {
-      const key = 'dragonSoul_calc_' + username;
-      const stored = localStorage.getItem(key);
-      if (stored) {
-        try { return JSON.parse(stored); } catch (e) {}
-      }
-      return { leftItems: [], rightItems: [] };
-    }
-
-    function savePlayerData(username, data) {
-      localStorage.setItem('dragonSoul_calc_' + username, JSON.stringify(data));
-    }
-    const playerData = {};
-
-    const MAX_ITEMS = 9;
-    const dom = {};
-
-    // ====================================================================
-    // 7. REFERÊNCIAS DOM
-    // ====================================================================
-    function initDomRefs() {
-      dom.a = document.getElementById('a');
-      dom.b = document.getElementById('b');
-      dom.L = document.getElementById('L');
-      dom.R = document.getElementById('R');
-      dom.tl = document.getElementById('tl');
-      dom.tr = document.getElementById('tr');
-      dom.totalL = document.getElementById('totalL');
-      dom.totalR = document.getElementById('totalR');
-      dom.diffDisplay = document.getElementById('diffDisplay');
-      dom.res = document.getElementById('res');
-      dom.warnL = document.getElementById('warnL');
-      dom.warnR = document.getElementById('warnR');
-      dom.searchInputL = document.getElementById('searchInputL');
-      dom.searchInputR = document.getElementById('searchInputR');
-      dom.suggestL = document.getElementById('suggestL');
-      dom.suggestR = document.getElementById('suggestR');
-      dom.main = document.getElementById('mainContent');
-      dom.userDisplay = document.getElementById('userDisplay');
-      dom.playersBody = document.getElementById('playersBody');
-      dom.addPlayerArea = document.getElementById('addPlayerArea');
-      dom.guestMsg = document.getElementById('guestMsg');
-      dom.editItemsContainer = document.getElementById('editItemsContainer');
-      dom.storageSize = document.getElementById('storageSize');
-      dom.lastUpdate = document.getElementById('lastUpdate');
-      dom.statPlayers = document.getElementById('statPlayers');
-      dom.statItems = document.getElementById('statItems');
-      dom.statLastUpdate = document.getElementById('statLastUpdate');
-      dom.statStorage = document.getElementById('statStorage');
-      dom.promoOutput = document.getElementById('promoOutput');
-      dom.generatePromoBtn = document.getElementById('generatePromoBtn');
-      dom.copyPromoBtn = document.getElementById('copyPromoBtn');
-      dom.downloadPromoTxtBtn = document.getElementById('downloadPromoTxtBtn');
-      dom.clearPromoBtn = document.getElementById('clearPromoBtn');
-      dom.promoResponsavel = document.getElementById('promoResponsavel');
-      dom.promoIndividuo = document.getElementById('promoIndividuo');
-      dom.promoPatenteAntiga = document.getElementById('promoPatenteAntiga');
-      dom.promoPatenteNova = document.getElementById('promoPatenteNova');
-      dom.promoMotivo = document.getElementById('promoMotivo');
-      dom.sidebar = document.getElementById('sidebar');
-      dom.sidebarToggle = document.getElementById('sidebarToggle');
-      dom.toggleIcon = document.getElementById('toggleIcon');
-      dom.modalOverlay = document.getElementById('modalOverlay');
-      dom.modalTitle = document.getElementById('modalTitle');
-      dom.modalBody = document.getElementById('modalBody');
-      dom.editPlayerName = document.getElementById('editPlayerName');
-      dom.editPlayerPower = document.getElementById('editPlayerPower');
-      dom.editPlayerDiscord = document.getElementById('editPlayerDiscord');
-      dom.editPlayerInactive = document.getElementById('editPlayerInactive');
-      dom.editPlayerParticipation = document.getElementById('editPlayerParticipation');
-      dom.saveEditPlayerBtn = document.getElementById('saveEditPlayerBtn');
-    }
-
-    // ====================================================================
-    // 8. FUNÇÕES DA CALCULADORA (inalteradas)
+    // 7. CALCULADORA – LÓGICA (com localStorage por usuário)
     // ====================================================================
     function getCurrentData() {
-      const user = window.currentUser;
-      if (!user) return { leftItems: [], rightItems: [] };
-      if (!playerData[user]) playerData[user] = loadPlayerData(user);
-      return playerData[user];
+      if (!currentUser) return { leftItems: [], rightItems: [] };
+      const key = 'dragonSoul_calc_' + currentUser;
+      if (!playerData[currentUser]) {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          try { playerData[currentUser] = JSON.parse(stored); } catch (e) {}
+        }
+        if (!playerData[currentUser]) playerData[currentUser] = { leftItems: [], rightItems: [] };
+      }
+      return playerData[currentUser];
     }
 
     function persistCurrentData() {
-      const user = window.currentUser;
-      if (user && playerData[user]) savePlayerData(user, playerData[user]);
+      if (currentUser && playerData[currentUser]) {
+        localStorage.setItem('dragonSoul_calc_' + currentUser, JSON.stringify(playerData[currentUser]));
+      }
     }
 
     function updateAll() {
       const data = getCurrentData();
-      const left = data.leftItems,
-        right = data.rightItems;
-      const tl = left.reduce((s, i) => s + renamedItems[i].value, 0);
-      const tr = right.reduce((s, i) => s + renamedItems[i].value, 0);
-      dom.tl.textContent = tl;
-      dom.tr.textContent = tr;
-      dom.totalL.textContent = tl;
-      dom.totalR.textContent = tr;
+      const left = data.leftItems || [];
+      const right = data.rightItems || [];
+      const tl = left.reduce((s, i) => s + (renamedItems[i] ? renamedItems[i].valor : 0), 0);
+      const tr = right.reduce((s, i) => s + (renamedItems[i] ? renamedItems[i].valor : 0), 0);
+      document.getElementById('tl').textContent = tl;
+      document.getElementById('tr').textContent = tr;
+      document.getElementById('totalL').textContent = tl;
+      document.getElementById('totalR').textContent = tr;
       const diff = tr - tl;
-      dom.diffDisplay.textContent = diff;
-      if (diff > 0) dom.res.textContent = 'Vale a pena receber';
-      else if (diff < 0) dom.res.textContent = 'Você está oferecendo mais';
-      else dom.res.textContent = 'Troca justa';
+      document.getElementById('diffDisplay').textContent = diff;
+      const res = document.getElementById('res');
+      if (diff > 0) res.textContent = 'Vale a pena receber';
+      else if (diff < 0) res.textContent = 'Você está oferecendo mais';
+      else res.textContent = 'Troca justa';
       renderList('L', left);
       renderList('R', right);
-      dom.warnL.textContent = left.length >= MAX_ITEMS ? ' (limite atingido)' : '';
-      dom.warnR.textContent = right.length >= MAX_ITEMS ? ' (limite atingido)' : '';
+      document.getElementById('warnL').textContent = left.length >= 9 ? ' (limite atingido)' : '';
+      document.getElementById('warnR').textContent = right.length >= 9 ? ' (limite atingido)' : '';
       persistCurrentData();
-      updateDashboard();
-      updateStorageInfo();
     }
 
     function renderList(side, arr) {
-      const ul = side === 'L' ? dom.L : dom.R;
+      const ul = side === 'L' ? document.getElementById('L') : document.getElementById('R');
       ul.innerHTML = '';
       arr.forEach((idx, pos) => {
         const it = renamedItems[idx];
+        if (!it) return;
         const li = document.createElement('li');
         li.innerHTML =
-          `<span>${it.name} - ${it.value}</span><button class="btn btn-sm btn-danger" onclick="removeItem('${side}',${pos})">✕</button>`;
+          `<span>${it.nome} - ${it.valor}</span><button class="btn btn-sm btn-danger" onclick="removeItem('${side}',${pos})">✕</button>`;
         ul.appendChild(li);
       });
     }
@@ -2024,7 +1827,7 @@
       idx = parseInt(idx);
       const data = getCurrentData();
       const arr = side === 'L' ? data.leftItems : data.rightItems;
-      if (arr.length >= MAX_ITEMS) { alert('Limite de ' + MAX_ITEMS + ' itens por lado.'); return; }
+      if (arr.length >= 9) { alert('Limite de 9 itens por lado.'); return; }
       arr.push(idx);
       updateAll();
     }
@@ -2050,103 +1853,32 @@
       const arr = side === 'L' ? data.leftItems : data.rightItems;
       let added = 0;
       for (const idx of comps) {
-        if (arr.length >= MAX_ITEMS) { alert('Limite de ' + MAX_ITEMS + ' itens atingido. Adicionados ' + added +
-            ' itens.'); break; }
+        if (arr.length >= 9) { alert('Limite de 9 itens atingido. Adicionados ' + added + ' itens.'); break; }
         arr.push(idx);
         added++;
       }
       updateAll();
     }
 
-    // ====================================================================
-    // 9. PROMOÇÃO (inalterada)
-    // ====================================================================
-    function generatePromocao() {
-      const responsavel = dom.promoResponsavel.value.trim() || 'Não informado';
-      const individuo = dom.promoIndividuo.value.trim() || 'Não informado';
-      const patenteAntiga = dom.promoPatenteAntiga.value.trim() || 'Não informada';
-      const patenteNova = dom.promoPatenteNova.value.trim() || 'Não informada';
-      const motivo = dom.promoMotivo.value.trim() || 'Motivo não informado.';
-      const hoje = new Date();
-      const dia = String(hoje.getDate()).padStart(2, '0');
-      const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-      const ano = hoje.getFullYear();
-      const dataStr = `${dia}/${mes}/${ano}`;
-      const mensagem =
-        `{PROMOÇÃO} ﻿﻿\n` +
-        `--------------------------------------------------------------\n` +
-        `⇛ Responsável: ${responsavel}\n` +
-        `--------------------------------------------------------------\n` +
-        `⇛ Indivíduo promovido: ${individuo}\n` +
-        `--------------------------------------------------------------\n` +
-        `⇛ Patente antiga: ${patenteAntiga}\n` +
-        `--------------------------------------------------------------\n` +
-        `⇛ Patente nova: ${patenteNova}\n` +
-        `--------------------------------------------------------------\n` +
-        `⇛ Motivo: ${motivo}\n` +
-        `--------------------------------------------------------------\n` +
-        `⇛ Data: ${dataStr}.\n` +
-        `--------------------------------------------------------------`;
-      dom.promoOutput.value = mensagem;
-    }
-
-    function copyPromo() {
-      const text = dom.promoOutput.value;
-      if (!text || text === 'A mensagem de promoção aparecerá aqui...') {
-        showToast('Nenhuma promoção gerada ainda.', 'error');
-        return;
-      }
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('Promoção copiada!', 'success');
-      }).catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        ta.remove();
-        showToast('Promoção copiada!', 'success');
-      });
-    }
-
-    function downloadPromoTxt() {
-      const text = dom.promoOutput.value;
-      if (!text || text === 'A mensagem de promoção aparecerá aqui...') {
-        showToast('Nenhuma promoção gerada ainda.', 'error');
-        return;
-      }
-      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `promocao_${new Date().toISOString().slice(0,10)}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Arquivo .txt baixado!', 'success');
-    }
-
-    function clearPromo() {
-      dom.promoOutput.value = '';
-    }
-
-    // ====================================================================
-    // 10. POPULAR SELECTS E SUGESTÕES
-    // ====================================================================
     function populateSelects() {
-      dom.a.innerHTML = '';
-      dom.b.innerHTML = '';
+      const a = document.getElementById('a');
+      const b = document.getElementById('b');
+      a.innerHTML = '';
+      b.innerHTML = '';
       renamedItems.forEach((it, i) => {
         const opt = document.createElement('option');
         opt.value = i;
-        opt.text = it.name + ' (' + it.value + ')';
-        dom.a.add(opt);
-        dom.b.add(opt.cloneNode(true));
+        opt.text = it.nome + ' (' + it.valor + ')';
+        a.add(opt);
+        b.add(opt.cloneNode(true));
       });
     }
 
     function populateSuggestions() {
-      dom.suggestL.innerHTML = '';
-      dom.suggestR.innerHTML = '';
+      const suggestL = document.getElementById('suggestL');
+      const suggestR = document.getElementById('suggestR');
+      suggestL.innerHTML = '';
+      suggestR.innerHTML = '';
       for (const [setName, comps] of setComponents) {
         if (!comps.length) continue;
         const btnL = document.createElement('button');
@@ -2154,23 +1886,550 @@
         btnL.textContent = setName + ' (' + comps.length + ' itens)';
         btnL.onclick = () => { addSet('L', setName);
           toggleSuggest('L'); };
-        dom.suggestL.appendChild(btnL);
+        suggestL.appendChild(btnL);
         const btnR = document.createElement('button');
         btnR.className = 'suggest-item';
         btnR.textContent = setName + ' (' + comps.length + ' itens)';
         btnR.onclick = () => { addSet('R', setName);
           toggleSuggest('R'); };
-        dom.suggestR.appendChild(btnR);
+        suggestR.appendChild(btnR);
       }
     }
 
+    function toggleSuggest(side) {
+      const dropdown = side === 'L' ? document.getElementById('suggestL') : document.getElementById('suggestR');
+      dropdown.classList.toggle('show');
+    }
+
     // ====================================================================
-    // 11. BUSCA COM SUGESTÕES (inalterada)
+    // 8. CRUD JOGADORES (com update/remove)
     // ====================================================================
+    function renderPlayers() {
+      const tbody = document.getElementById('playersBody');
+      tbody.innerHTML = '';
+      players.forEach((p) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${p.nome}</strong></td>
+          <td class="power">${p.poder}</td>
+          <td>${p.discord ? `<a href="${p.discord}" target="_blank" class="discord-link">${p.discord}</a>` : '—'}</td>
+          <td>${p.inativo || 'não'}</td>
+          <td>${p.participacao !== undefined ? p.participacao : 0}</td>
+          <td class="player-actions adm-only" style="display:${isAdmin ? '' : 'none'};">
+            <button onclick="openEditModal('${p.id}')"><i class="fas fa-edit"></i></button>
+            <button class="del-btn" onclick="deletePlayer('${p.id}')"><i class="fas fa-trash"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      // Mostra/oculta coluna de ações
+      document.querySelectorAll('.styled-table .adm-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
+      document.getElementById('addPlayerArea').style.display = isAdmin ? 'flex' : 'none';
+      document.getElementById('guestMsg').style.display = isAdmin ? 'none' : 'block';
+    }
+
+    function updatePlayerSuggestions() {
+      const datalist = document.getElementById('playerSuggestions');
+      datalist.innerHTML = players.map(p => `<option value="${p.nome}">`).join('');
+    }
+
+    function addPlayer() {
+      if (!isAdmin) { showToast('Apenas administradores podem adicionar.', 'error'); return; }
+      const nome = document.getElementById('newPlayerName').value.trim();
+      const poder = document.getElementById('newPlayerPower').value.trim();
+      const discord = document.getElementById('newPlayerDiscord').value.trim();
+      const inativo = document.getElementById('newPlayerInactive').value;
+      const participacao = parseInt(document.getElementById('newPlayerParticipation').value) || 0;
+      if (!nome || !poder) { showToast('Nome e poder são obrigatórios.', 'error'); return; }
+      db.ref('jogadores').push({
+        nome, poder, discord, inativo, participacao
+      }).then(() => {
+        showToast('Jogador adicionado!', 'success');
+        document.getElementById('newPlayerName').value = '';
+        document.getElementById('newPlayerPower').value = '';
+        document.getElementById('newPlayerDiscord').value = '';
+        document.getElementById('newPlayerInactive').value = 'não';
+        document.getElementById('newPlayerParticipation').value = '0';
+      }).catch(err => showToast('Erro: ' + err.message, 'error'));
+    }
+
+    function openEditModal(id) {
+      const p = players.find(p => p.id === id);
+      if (!p) return;
+      document.getElementById('editPlayerName').value = p.nome;
+      document.getElementById('editPlayerPower').value = p.poder;
+      document.getElementById('editPlayerDiscord').value = p.discord || '';
+      document.getElementById('editPlayerInactive').value = p.inativo || 'não';
+      document.getElementById('editPlayerParticipation').value = p.participacao || 0;
+      document.getElementById('modalTitle').textContent = 'Editar Jogador';
+      document.getElementById('saveEditPlayerBtn').dataset.id = id;
+      openModal();
+    }
+
+    function saveEditPlayer() {
+      const id = document.getElementById('saveEditPlayerBtn').dataset.id;
+      const nome = document.getElementById('editPlayerName').value.trim();
+      const poder = document.getElementById('editPlayerPower').value.trim();
+      const discord = document.getElementById('editPlayerDiscord').value.trim();
+      const inativo = document.getElementById('editPlayerInactive').value;
+      const participacao = parseInt(document.getElementById('editPlayerParticipation').value) || 0;
+      if (!nome || !poder) { showToast('Nome e poder são obrigatórios.', 'error'); return; }
+      db.ref('jogadores/' + id).update({
+        nome, poder, discord, inativo, participacao
+      }).then(() => {
+        showToast('Jogador atualizado!', 'success');
+        closeModal();
+      }).catch(err => showToast('Erro: ' + err.message, 'error'));
+    }
+
+    function deletePlayer(id) {
+      const p = players.find(p => p.id === id);
+      if (!confirm(`Remover jogador "${p.nome}"?`)) return;
+      db.ref('jogadores/' + id).remove()
+        .then(() => showToast('Jogador removido.', 'success'))
+        .catch(err => showToast('Erro: ' + err.message, 'error'));
+    }
+
+    // ====================================================================
+    // 9. CRUD ITENS (edição de valores)
+    // ====================================================================
+    function renderEditItems() {
+      const container = document.getElementById('editItemsContainer');
+      container.innerHTML = '';
+      if (!isAdmin) {
+        container.innerHTML = '<p style="color:var(--text-muted);">Apenas administradores podem editar valores.</p>';
+        return;
+      }
+      items.forEach((it) => {
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `
+          <span>${it.nome}</span>
+          <input type="number" id="itemVal_${it.id}" value="${it.valor}" min="0" step="1">
+          <button class="btn btn-sm btn-primary" onclick="saveItemValue('${it.id}')">Salvar</button>
+          <button class="btn btn-sm btn-secondary" onclick="resetItemValue('${it.id}')">↺</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function saveItemValue(id) {
+      if (!isAdmin) { showToast('Apenas administradores podem editar.', 'error'); return; }
+      const input = document.getElementById('itemVal_' + id);
+      const valor = parseInt(input.value);
+      if (isNaN(valor) || valor < 0) { showToast('Valor inválido.', 'error'); return; }
+      db.ref('itens/' + id).update({ valor })
+        .then(() => showToast('Valor atualizado!', 'success'))
+        .catch(err => showToast('Erro: ' + err.message, 'error'));
+    }
+
+    function resetItemValue(id) {
+      const item = items.find(it => it.id === id);
+      if (!item) return;
+      const def = DEFAULT_ITEMS.find(d => d.name === item.nome);
+      if (!def) return;
+      db.ref('itens/' + id).update({ valor: def.value })
+        .then(() => showToast('Valor restaurado.', 'success'))
+        .catch(err => showToast('Erro: ' + err.message, 'error'));
+    }
+
+    function resetAllItems() {
+      if (!isAdmin) { showToast('Apenas administradores.', 'error'); return; }
+      if (!confirm('Restaurar todos os valores para o padrão?')) return;
+      const updates = {};
+      items.forEach(item => {
+        const def = DEFAULT_ITEMS.find(d => d.name === item.nome);
+        if (def) {
+          updates['itens/' + item.id + '/valor'] = def.value;
+        }
+      });
+      db.ref().update(updates)
+        .then(() => showToast('Todos os valores restaurados.', 'success'))
+        .catch(err => showToast('Erro: ' + err.message, 'error'));
+    }
+
+    // ====================================================================
+    // 10. DASHBOARD E SISTEMA
+    // ====================================================================
+    function updateDashboard() {
+      document.getElementById('statPlayers').textContent = players.length;
+      document.getElementById('statItems').textContent = items.length;
+      const now = new Date().toLocaleString();
+      document.getElementById('statLastUpdate').textContent = now;
+      document.getElementById('lastUpdate').textContent = now;
+      // Espaço usado (estimado)
+      const size = new Blob([JSON.stringify(localStorage)]).size;
+      document.getElementById('statStorage').textContent = (size / 1024).toFixed(1) + ' KB';
+      document.getElementById('storageSize').textContent = (size / 1024).toFixed(1) + ' KB';
+    }
+
+    // ====================================================================
+    // 11. EXPORTAÇÃO / IMPORTAÇÃO / BACKUP (com IDs)
+    // ====================================================================
+    function exportFullData() {
+      const data = { jogadores: players, itens: items };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'coa_dados.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Dados exportados!', 'success');
+    }
+
+    function importFullData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.jogadores || !data.itens) throw new Error('Estrutura inválida.');
+          // Importar jogadores e itens (sobrescreve)
+          const updates = {};
+          data.jogadores.forEach(p => {
+            const ref = db.ref('jogadores').push();
+            updates[ref.key] = p;
+          });
+          data.itens.forEach(i => {
+            const ref = db.ref('itens').push();
+            updates[ref.key] = i;
+          });
+          db.ref().update(updates).then(() => {
+            showToast('Dados importados com sucesso!', 'success');
+          }).catch(err => showToast('Erro: ' + err.message, 'error'));
+        } catch (err) {
+          showToast('Arquivo inválido.', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function exportBackup() {
+      // Exporta todos os dados do Firebase (apenas nós conhecidos)
+      db.ref().once('value', (snap) => {
+        const data = snap.val();
+        if (!data) { showToast('Nenhum dado para exportar.', 'error'); return; }
+        // Filtra apenas os nós que interessam (registros, jogadores, itens)
+        const backup = {
+          registros: data.registros || {},
+          jogadores: data.jogadores || {},
+          itens: data.itens || {}
+        };
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'coa_backup_' + new Date().toISOString().slice(0,10) + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Backup exportado!', 'success');
+      });
+    }
+
+    function restoreBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.registros && !data.jogadores && !data.itens) throw new Error('Estrutura inválida.');
+          if (!confirm('Isso sobrescreverá todos os dados atuais. Continuar?')) return;
+          const updates = {};
+          if (data.registros) {
+            Object.entries(data.registros).forEach(([key, val]) => {
+              updates['registros/' + key] = val;
+            });
+          }
+          if (data.jogadores) {
+            Object.entries(data.jogadores).forEach(([key, val]) => {
+              updates['jogadores/' + key] = val;
+            });
+          }
+          if (data.itens) {
+            Object.entries(data.itens).forEach(([key, val]) => {
+              updates['itens/' + key] = val;
+            });
+          }
+          db.ref().update(updates).then(() => {
+            showToast('Backup restaurado com sucesso!', 'success');
+          }).catch(err => showToast('Erro: ' + err.message, 'error'));
+        } catch (err) {
+          showToast('Arquivo inválido.', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function copyShareCode() {
+      // Gera código base64 do estado atual (jogadores e itens)
+      const data = { jogadores: players, itens: items };
+      const json = JSON.stringify(data);
+      const encoded = btoa(unescape(encodeURIComponent(json))); // suporte a UTF-8
+      navigator.clipboard.writeText(encoded).then(() => {
+        showToast('Código copiado!', 'success');
+      }).catch(() => {
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = encoded;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        showToast('Código copiado!', 'success');
+      });
+    }
+
+    function importShareCode() {
+      const code = document.getElementById('shareCodeInput').value.trim();
+      if (!code) { showToast('Cole um código válido.', 'error'); return; }
+      try {
+        const json = decodeURIComponent(escape(atob(code)));
+        const data = JSON.parse(json);
+        if (!data.jogadores || !data.itens) throw new Error('Estrutura inválida.');
+        if (!confirm('Isso sobrescreverá os dados atuais. Continuar?')) return;
+        const updates = {};
+        data.jogadores.forEach(p => {
+          const ref = db.ref('jogadores').push();
+          updates[ref.key] = p;
+        });
+        data.itens.forEach(i => {
+          const ref = db.ref('itens').push();
+          updates[ref.key] = i;
+        });
+        db.ref().update(updates).then(() => {
+          showToast('Dados importados do código!', 'success');
+        }).catch(err => showToast('Erro: ' + err.message, 'error'));
+      } catch (err) {
+        showToast('Código inválido.', 'error');
+      }
+    }
+
+    function clearAllStorage() {
+      if (!isAdmin) { showToast('Apenas administradores.', 'error'); return; }
+      if (!confirm('Limpar todo o localStorage? Isso não afeta o Firebase.')) return;
+      localStorage.clear();
+      showToast('LocalStorage limpo.', 'success');
+    }
+
+    // ====================================================================
+    // 12. PROMOÇÃO
+    // ====================================================================
+    function generatePromo() {
+      const responsavel = document.getElementById('promoResponsavel').value.trim() || 'Não informado';
+      const individuo = document.getElementById('promoIndividuo').value.trim() || 'Não informado';
+      const patenteAntiga = document.getElementById('promoPatenteAntiga').value.trim() || 'Não informada';
+      const patenteNova = document.getElementById('promoPatenteNova').value.trim() || 'Não informada';
+      const motivo = document.getElementById('promoMotivo').value.trim() || 'Motivo não informado.';
+      const hoje = new Date();
+      const dataStr = `${String(hoje.getDate()).padStart(2,'0')}/${String(hoje.getMonth()+1).padStart(2,'0')}/${hoje.getFullYear()}`;
+      const mensagem =
+        `{PROMOÇÃO} ﻿﻿\n--------------------------------------------------------------\n⇛ Responsável: ${responsavel}\n--------------------------------------------------------------\n⇛ Indivíduo promovido: ${individuo}\n--------------------------------------------------------------\n⇛ Patente antiga: ${patenteAntiga}\n--------------------------------------------------------------\n⇛ Patente nova: ${patenteNova}\n--------------------------------------------------------------\n⇛ Motivo: ${motivo}\n--------------------------------------------------------------\n⇛ Data: ${dataStr}.\n--------------------------------------------------------------`;
+      document.getElementById('promoOutput').value = mensagem;
+    }
+
+    function copyPromo() {
+      const text = document.getElementById('promoOutput').value;
+      if (!text) { showToast('Nenhuma promoção gerada.', 'error'); return; }
+      navigator.clipboard.writeText(text).then(() => showToast('Copiado!', 'success'))
+        .catch(() => {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+          showToast('Copiado!', 'success');
+        });
+    }
+
+    function downloadPromoTxt() {
+      const text = document.getElementById('promoOutput').value;
+      if (!text) { showToast('Nenhuma promoção gerada.', 'error'); return; }
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `promocao_${new Date().toISOString().slice(0,10)}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Arquivo baixado!', 'success');
+    }
+
+    function clearPromo() {
+      document.getElementById('promoOutput').value = '';
+    }
+
+    // ====================================================================
+    // 13. LOGIN / CADASTRO
+    // ====================================================================
+    function doLogin() {
+      const usuario = document.getElementById('username').value.trim();
+      const senha = document.getElementById('password').value.trim();
+      const errDiv = document.getElementById('loginError');
+      if (!usuario || !senha) {
+        errDiv.textContent = 'Preencha todos os campos.';
+        return;
+      }
+      errDiv.textContent = 'Verificando...';
+      // Busca no nó registros
+      db.ref('registros').orderByChild('usuario').equalTo(usuario).once('value')
+        .then((snap) => {
+          if (!snap.exists()) {
+            errDiv.textContent = 'Usuário não encontrado.';
+            return;
+          }
+          let userFound = null;
+          let userId = null;
+          snap.forEach((child) => {
+            const val = child.val();
+            if (val.usuario === usuario) {
+              userFound = val;
+              userId = child.key;
+            }
+          });
+          if (!userFound) {
+            errDiv.textContent = 'Usuário não encontrado.';
+            return;
+          }
+          if (userFound.senha !== senha) {
+            errDiv.textContent = 'Senha incorreta.';
+            return;
+          }
+          // Login bem-sucedido
+          errDiv.textContent = '';
+          currentUser = usuario;
+          currentUserId = userId;
+          isAdmin = (userFound.tipo === 'admin');
+          // Escuta mudanças no próprio usuário (para atualizar tipo em tempo real)
+          db.ref('registros/' + userId).on('value', (snap) => {
+            const data = snap.val();
+            if (data) {
+              isAdmin = (data.tipo === 'admin');
+              // Atualiza interface se mudar
+              updateAdminUI();
+              document.getElementById('userDisplay').innerHTML = `Jogador: <strong>${data.usuario || currentUser}</strong>`;
+            }
+          });
+          startApp();
+        })
+        .catch((err) => {
+          errDiv.textContent = 'Erro: ' + err.message;
+        });
+    }
+
+    function doRegister() {
+      const usuario = document.getElementById('username').value.trim();
+      const senha = document.getElementById('password').value.trim();
+      const errDiv = document.getElementById('loginError');
+      if (!usuario || !senha) {
+        errDiv.textContent = 'Preencha todos os campos.';
+        return;
+      }
+      if (senha.length < 6) {
+        errDiv.textContent = 'Senha deve ter pelo menos 6 caracteres.';
+        return;
+      }
+      errDiv.textContent = 'Verificando...';
+      // Verifica se usuário já existe
+      db.ref('registros').orderByChild('usuario').equalTo(usuario).once('value')
+        .then((snap) => {
+          if (snap.exists()) {
+            errDiv.textContent = 'Usuário já existe.';
+            return;
+          }
+          // Verifica nick duplicado (usamos nick = usuario por padrão)
+          // Para simplificar, não validamos nick duplicado a menos que o usuário forneça um campo extra
+          db.ref('registros').push({
+            usuario: usuario,
+            senha: senha,
+            tipo: 'usuario',
+            criadoEm: new Date().toISOString()
+          }).then(() => {
+            errDiv.textContent = '';
+            showToast('Usuário cadastrado! Faça login.', 'success');
+            // Limpa campos
+            document.getElementById('password').value = '';
+          }).catch(err => {
+            errDiv.textContent = 'Erro ao cadastrar: ' + err.message;
+          });
+        })
+        .catch(err => {
+          errDiv.textContent = 'Erro: ' + err.message;
+        });
+    }
+
+    // ====================================================================
+    // 14. INICIALIZAÇÃO DO APP
+    // ====================================================================
+    function startApp() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appContainer').style.display = 'block';
+      document.getElementById('userDisplay').innerHTML = `Jogador: <strong>${currentUser}</strong>`;
+      updateAdminUI();
+
+      // Carrega dados em tempo real
+      loadItemsRealtime();
+      loadPlayersRealtime();
+
+      // Atualiza dashboard periodicamente (já atualizado pelos listeners)
+      // Inicializa a calculadora com dados vazios
+      updateAll();
+
+      // Configura listeners dos botões que não estão no HTML onclick
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        // Desconecta listeners
+        db.ref('itens').off();
+        db.ref('jogadores').off();
+        if (currentUserId) db.ref('registros/' + currentUserId).off();
+        currentUser = null;
+        currentUserId = null;
+        isAdmin = false;
+        document.getElementById('appContainer').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('password').value = '';
+        document.getElementById('loginError').textContent = '';
+      });
+
+      document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
+      document.getElementById('saveEditPlayerBtn').addEventListener('click', saveEditPlayer);
+      document.getElementById('generatePromoBtn').addEventListener('click', generatePromo);
+      document.getElementById('copyPromoBtn').addEventListener('click', copyPromo);
+      document.getElementById('downloadPromoTxtBtn').addEventListener('click', downloadPromoTxt);
+      document.getElementById('clearPromoBtn').addEventListener('click', clearPromo);
+      document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
+      document.getElementById('sidebarLogo').addEventListener('click', () => navigateTo('dashboard'));
+
+      // Navegação pelos itens da sidebar
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          const page = item.dataset.page;
+          navigateTo(page);
+        });
+      });
+
+      // Busca na calculadora com sugestões
+      setupSearch();
+
+      // Dashboard inicial
+      updateDashboard();
+    }
+
+    function updateAdminUI() {
+      document.querySelectorAll('.adm-only').forEach(el => {
+        el.style.display = isAdmin ? '' : 'none';
+      });
+      // Recarrega lista de jogadores para mostrar/ocultar ações
+      renderPlayers();
+      renderEditItems();
+    }
+
     function setupSearch() {
       function handleInput(input, side) {
         const term = input.value.toLowerCase().trim();
-        const list = side === 'L' ? dom.suggestL : dom.suggestR;
+        const list = side === 'L' ? document.getElementById('suggestL') : document.getElementById('suggestR');
         if (!term.length) {
           list.classList.remove('show');
           return;
@@ -2178,8 +2437,8 @@
         const matches = [];
         for (let i = 0; i < renamedItems.length; i++) {
           const it = renamedItems[i];
-          if (it.name.toLowerCase().includes(term)) {
-            matches.push({ index: i, name: it.name, value: it.value });
+          if (it.nome.toLowerCase().includes(term)) {
+            matches.push({ index: i, name: it.nome, value: it.valor });
           }
           if (matches.length >= 15) break;
         }
@@ -2198,191 +2457,66 @@
         });
         list.classList.add('show');
       }
-      dom.searchInputL.addEventListener('input', () => handleInput(dom.searchInputL, 'L'));
-      dom.searchInputR.addEventListener('input', () => handleInput(dom.searchInputR, 'R'));
+      document.getElementById('searchInputL').addEventListener('input', (e) => handleInput(e.target, 'L'));
+      document.getElementById('searchInputR').addEventListener('input', (e) => handleInput(e.target, 'R'));
       document.addEventListener('click', (e) => {
         if (!e.target.closest('.suggest-wrap')) {
-          dom.suggestL.classList.remove('show');
-          dom.suggestR.classList.remove('show');
+          document.getElementById('suggestL').classList.remove('show');
+          document.getElementById('suggestR').classList.remove('show');
         }
       });
     }
 
-    function toggleSuggest(side) {
-      const dropdown = side === 'L' ? dom.suggestL : dom.suggestR;
-      dropdown.classList.toggle('show');
-    }
-
     // ====================================================================
-    // 12. JOGADORES
+    // 15. INICIALIZAÇÃO GERAL
     // ====================================================================
-    function renderPlayers() {
-      const tbody = dom.playersBody;
-      tbody.innerHTML = '';
-      players.forEach((p, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td><strong>${p.name}</strong></td>
-          <td class="power">${p.power}</td>
-          <td>${p.discord ? `<a href="${p.discord}" target="_blank" class="discord-link">${p.discord}</a>` : '—'}</td>
-          <td>${p.inactive || 'não'}</td>
-          <td>${p.participation !== undefined ? p.participation : 0}</td>
-          <td class="player-actions adm-only" style="display:none;">
-            <button onclick="openEditModal(${index})"><i class="fas fa-edit"></i></button>
-            <button class="del-btn" onclick="deletePlayer(${index})"><i class="fas fa-trash"></i></button>
-          </td>`;
-        tbody.appendChild(tr);
+    document.addEventListener('DOMContentLoaded', () => {
+      // Eventos de login/registro
+      document.getElementById('loginBtn').addEventListener('click', doLogin);
+      document.getElementById('registerBtn').addEventListener('click', doRegister);
+      document.getElementById('password').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') doLogin();
       });
-      const isAdm = window.isAdmin || false;
-      document.querySelectorAll('.styled-table .adm-only').forEach(el => el.style.display = isAdm ? '' : 'none');
-      dom.addPlayerArea.style.display = isAdm ? 'flex' : 'none';
-      dom.guestMsg.style.display = 'none';
-      updateDashboard();
-      updatePlayerSuggestions();
-    }
 
-    function updatePlayerSuggestions() {
-      const datalist = document.getElementById('playerSuggestions');
-      if (!datalist) return;
-      datalist.innerHTML = '';
-      players.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.name;
-        datalist.appendChild(opt);
-      });
-    }
-
-    function addPlayer() {
-      const name = document.getElementById('newPlayerName').value.trim();
-      const power = document.getElementById('newPlayerPower').value.trim();
-      const discord = document.getElementById('newPlayerDiscord').value.trim();
-      const inactive = document.getElementById('newPlayerInactive').value;
-      const participation = parseInt(document.getElementById('newPlayerParticipation').value) || 0;
-      if (!name || !power) { showToast('Nome e poder são obrigatórios.', 'error'); return; }
-      players.push({ name, power, discord, inactive, participation });
-      savePlayers(players);
-      renderPlayers();
-      document.getElementById('newPlayerName').value = '';
-      document.getElementById('newPlayerPower').value = '';
-      document.getElementById('newPlayerDiscord').value = '';
-      document.getElementById('newPlayerInactive').value = 'não';
-      document.getElementById('newPlayerParticipation').value = '0';
-      showToast('Jogador adicionado!', 'success');
-    }
-
-    let editIndex = null;
-
-    function openEditModal(index) {
-      editIndex = index;
-      const p = players[index];
-      dom.editPlayerName.value = p.name;
-      dom.editPlayerPower.value = p.power;
-      dom.editPlayerDiscord.value = p.discord || '';
-      dom.editPlayerInactive.value = p.inactive || 'não';
-      dom.editPlayerParticipation.value = p.participation !== undefined ? p.participation : 0;
-      dom.modalTitle.textContent = 'Editar Jogador';
-      dom.modalOverlay.classList.add('active');
-    }
-
-    function closeModal() {
-      dom.modalOverlay.classList.remove('active');
-      editIndex = null;
-    }
-
-    function saveEditPlayer() {
-      if (editIndex === null) return;
-      const name = dom.editPlayerName.value.trim();
-      const power = dom.editPlayerPower.value.trim();
-      const discord = dom.editPlayerDiscord.value.trim();
-      const inactive = dom.editPlayerInactive.value;
-      const participation = parseInt(dom.editPlayerParticipation.value) || 0;
-      if (!name || !power) { showToast('Nome e poder são obrigatórios.', 'error'); return; }
-      players[editIndex] = { name, power, discord, inactive, participation };
-      savePlayers(players);
-      renderPlayers();
-      closeModal();
-      showToast('Jogador atualizado!', 'success');
-    }
-
-    function deletePlayer(index) {
-      if (!confirm(`Remover jogador "${players[index].name}"?`)) return;
-      players.splice(index, 1);
-      savePlayers(players);
-      renderPlayers();
-      showToast('Jogador removido.', 'success');
-    }
+      // Tenta login automático se houver sessão? Não implementado – sempre pede login.
+    });
 
     // ====================================================================
-    // 13. EDIÇÃO DE ITENS (ADM)
+    // 16. EXPOSIÇÃO GLOBAL PARA ONCLICK NO HTML
     // ====================================================================
-    function renderEditItems() {
-      const container = dom.editItemsContainer;
-      container.innerHTML = '';
-      renamedItems.forEach((it, idx) => {
-        const row = document.createElement('div');
-        row.className = 'item-row';
-        row.innerHTML = `<span>${it.name}</span>
-          <input type="number" id="itemVal_${idx}" value="${it.value}" min="0" step="1">
-          <button class="btn btn-sm btn-primary" onclick="saveItemValue(${idx})">Salvar</button>
-          <button class="btn btn-sm btn-secondary" onclick="resetItemValue(${idx})">↺</button>`;
-        container.appendChild(row);
-      });
-    }
-
-    function saveItemValue(idx) {
-      const input = document.getElementById('itemVal_' + idx);
-      const val = parseInt(input.value);
-      if (isNaN(val) || val < 0) { showToast('Valor inválido.', 'error'); return; }
-      renamedItems[idx].value = val;
-      // Atualiza o array original `items` também
-      const origName = renamedItems[idx].name;
-      const origItem = items.find(d => d.name === origName);
-      if (origItem) origItem.value = val;
-      saveItems(items);
-      populateSelects();
-      updateAll();
-      renderEditItems();
-      showToast('Valor atualizado!', 'success');
-    }
-
-    function resetItemValue(idx) {
-      const origName = renamedItems[idx].name;
-      const def = DEFAULT_ITEMS.find(d => d.name === origName);
-      if (def) {
-        const origItem = items.find(d => d.name === origName);
-        if (origItem) origItem.value = def.value;
-        renamedItems[idx].value = def.value;
-        saveItems(items);
-        populateSelects();
-        updateAll();
-        renderEditItems();
-        showToast('Valor restaurado.', 'success');
-      }
-    }
-
-    function resetAllItems() {
-      if (!confirm('Restaurar todos os valores para o padrão?')) return;
-      items = DEFAULT_ITEMS.map(i => ({ ...i }));
-      saveItems(items);
-      rebuildRenamedAndSets();
-      populateSelects();
-      populateSuggestions();
-      updateAll();
-      renderEditItems();
-      showToast('Todos os valores restaurados.', 'success');
-    }
+    window.addItem = addItem;
+    window.removeItem = removeItem;
+    window.clearSide = clearSide;
+    window.addSet = addSet;
+    window.toggleSuggest = toggleSuggest;
+    window.generatePromo = generatePromo;
+    window.copyPromo = copyPromo;
+    window.downloadPromoTxt = downloadPromoTxt;
+    window.clearPromo = clearPromo;
+    window.openEditModal = openEditModal;
+    window.deletePlayer = deletePlayer;
+    window.saveItemValue = saveItemValue;
+    window.resetItemValue = resetItemValue;
+    window.resetAllItems = resetAllItems;
+    window.navigateTo = navigateTo;
+    window.exportFullData = exportFullData;
+    window.importFullData = importFullData;
+    window.exportBackup = exportBackup;
+    window.restoreBackup = restoreBackup;
+    window.copyShareCode = copyShareCode;
+    window.importShareCode = importShareCode;
+    window.clearAllStorage = clearAllStorage;
+    window.closeModal = closeModal;
 
     // ====================================================================
-    // 14. DASHBOARD E SISTEMA
+    // 17. JOGADORES PADRÃO (para seed)
     // ====================================================================
-    function updateDashboard() {
-      dom.statPlayers.textContent = players.length;
-      dom.statItems.textContent = renamedItems.length;
-      dom.statLastUpdate.textContent = localStorage.getItem('dragonSoul_lastUpdate') || 'Nunca';
-      const size = new Blob([JSON.stringify(localStorage)]).size;
-      dom.statStorage.textContent = (size / 1024).toFixed(1) + ' KB';
-      dom.storageSize.textContent = (size / 1024).toFixed(1) + ' KB';
-      dom.lastUpdate.textContent = localStorage.getItem('dragonSoul_lastUpdate') || 'Nunca';
-    }
-  </script>
-</body>
-</html>
+    const DEFAULT_PLAYERS = [
+      { name: 'Schneiideer', power: '6.2M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'lucasrc09', power: '6.1M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Biancalazuli019 (mudinho)', power: '5.6M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'Japodealmossah2', power: '5.5M', discord: '', inactive: 'não', participation: 0 },
+      { name: 'darkizin_084', power: '5.13M (Transformado)', discord: '', inactive: 'não', participation: 0 },
+      { name: 'DragonSlayer (ptkrvs123)', power: '5.1M (Transformado)', discord: '', inactive: 'não', participation: 0 },
+      { name: 'yegsjefxjjdhg6353 (Kazuki/russo)', power: '4.5M (Transformado)', discord: '', inactive: 'não', participation: 0 },
+      { name: 'マクドーズ (@Biel)', power: '274k Base / 4M Max', discord: '', inactive: 'não',
