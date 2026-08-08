@@ -7,2520 +7,1445 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
-    /* ===== RESET E BASE (mantido inalterado) ===== */
-    *,
-    *::before,
-    *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    /* ===== RESET E BASE ===== */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
     :root {
-      --bg-primary: #0B0B0B;
-      --bg-secondary: #141414;
-      --bg-card: #1A1A1A;
-      --bg-hover: #242424;
-      --neon-purple: #7C3AED;
-      --neon-purple-glow: rgba(124, 58, 237, 0.35);
-      --neon-purple-dim: rgba(124, 58, 237, 0.12);
-      --text-primary: #F0F0F0;
-      --text-secondary: #A0A0A0;
-      --text-muted: #666666;
-      --border-color: #2A2A2A;
-      --shadow-glow: 0 0 30px rgba(124, 58, 237, 0.15);
-      --radius: 14px;
-      --radius-sm: 8px;
-      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      --font: 'JetBrains Mono', monospace;
+      --bg-primary:#0B0B0B; --bg-secondary:#141414; --bg-card:#1A1A1A; --bg-hover:#242424;
+      --neon-purple:#7C3AED; --neon-purple-glow:rgba(124,58,237,0.35); --neon-purple-dim:rgba(124,58,237,0.12);
+      --neon-green:#10B981; --neon-red:#EF4444;
+      --text-primary:#F0F0F0; --text-secondary:#A0A0A0; --text-muted:#666666;
+      --border-color:#2A2A2A; --shadow-glow:0 0 30px rgba(124,58,237,0.15);
+      --radius:14px; --radius-sm:8px; --transition:0.3s cubic-bezier(0.4,0,0.2,1);
+      --font:'JetBrains Mono',monospace;
     }
+    html { font-size:16px; scroll-behavior:smooth; }
+    body { font-family:var(--font); background:var(--bg-primary); color:var(--text-primary); min-height:100vh; display:flex; overflow:hidden; }
+    ::-webkit-scrollbar { width:6px; height:6px; }
+    ::-webkit-scrollbar-track { background:var(--bg-secondary); }
+    ::-webkit-scrollbar-thumb { background:var(--neon-purple); border-radius:10px; }
 
-    html { font-size: 16px; scroll-behavior: smooth; }
-    body {
-      font-family: var(--font);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex;
-      overflow: hidden;
+    /* ===== LOGIN ===== */
+    #loginScreen {
+      width:100%; height:100vh; display:flex; align-items:center; justify-content:center;
+      background:radial-gradient(circle at 50% 42%, rgba(124,58,237,0.16), transparent 60%), var(--bg-primary);
     }
-
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg-secondary); }
-    ::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #8B5CF6; }
+    .login-box {
+      background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius);
+      padding:40px 48px; max-width:420px; width:100%; text-align:center;
+    }
+    .login-box h1 {
+      font-family:'Orbitron',var(--font); font-size:34px; font-weight:500;
+      letter-spacing:6px; color:#A78BFA; margin-bottom:8px;
+    }
+    .login-box .subtitle { color:var(--text-muted); font-size:12px; margin-bottom:32px; letter-spacing:2px; }
+    .login-tabs { display:flex; gap:0; margin-bottom:24px; border:1px solid var(--border-color); border-radius:30px; overflow:hidden; }
+    .login-tab {
+      flex:1; padding:10px; background:transparent; border:none; color:var(--text-secondary);
+      font-family:var(--font); font-size:13px; cursor:pointer; transition:all var(--transition);
+    }
+    .login-tab.active { background:var(--neon-purple); color:#fff; }
+    .field { text-align:left; margin-bottom:16px; }
+    .field label { display:block; font-size:12px; color:var(--text-secondary); margin-bottom:6px; letter-spacing:1px; text-transform:uppercase; }
+    .field input {
+      width:100%; padding:13px 18px; background:var(--bg-hover); border:1px solid var(--border-color);
+      border-radius:30px; color:var(--text-primary); font-family:var(--font); font-size:14px; outline:none; transition:all var(--transition);
+    }
+    .field input:focus { border-color:var(--neon-purple); box-shadow:0 0 20px var(--neon-purple-glow); }
+    .field input::placeholder { color:var(--text-muted); }
+    #loginBtn {
+      width:100%; padding:14px; background:#2E1A55; border:1px solid var(--neon-purple);
+      border-radius:30px; color:#fff; font-family:var(--font); font-size:14px; font-weight:600;
+      cursor:pointer; transition:all var(--transition); margin-top:8px;
+      box-shadow:0 0 25px var(--neon-purple-glow);
+    }
+    #loginBtn:hover { background:#3B2270; }
+    #loginBtn:disabled { opacity:0.6; cursor:not-allowed; }
+    #loginError { color:#F87171; font-size:13px; min-height:20px; margin-top:12px; }
+    .mobile-warning { font-size:11px; color:var(--text-muted); margin-top:16px; line-height:1.5; }
 
     /* ===== SIDEBAR ===== */
     .sidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 68px;
-      height: 100vh;
-      background: var(--bg-secondary);
-      border-right: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px 0 20px;
-      z-index: 100;
-      transition: width var(--transition);
-      overflow: hidden;
-      flex-shrink: 0;
+      position:fixed; top:0; left:0; width:68px; height:100vh; background:var(--bg-secondary);
+      border-right:1px solid var(--border-color); display:flex; flex-direction:column;
+      align-items:center; padding:24px 0 20px; z-index:100; transition:width var(--transition); overflow:hidden; flex-shrink:0;
     }
-    .sidebar.expanded { width: 260px; }
-
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-      padding: 0 16px;
-      margin-bottom: 32px;
-      cursor: pointer;
-    }
-    .sidebar-logo .logo-icon {
-      width: 36px;
-      height: 36px;
-      background: var(--neon-purple);
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 18px;
-      color: #fff;
-      flex-shrink: 0;
-      box-shadow: 0 0 20px var(--neon-purple-glow);
-    }
-    .sidebar-logo .logo-text {
-      font-weight: 700;
-      font-size: 18px;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity var(--transition);
-    }
-    .sidebar.expanded .sidebar-logo .logo-text { opacity: 1; }
-    .sidebar-logo .logo-sub {
-      font-size: 10px;
-      color: var(--text-secondary);
-      letter-spacing: 1px;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity var(--transition);
-    }
-    .sidebar.expanded .sidebar-logo .logo-sub { opacity: 1; }
-
-    .sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      width: 100%;
-      padding: 0 12px;
-      flex: 1;
-    }
+    .sidebar.expanded { width:260px; }
+    .sidebar-logo { display:flex; align-items:center; gap:12px; width:100%; padding:0 16px; margin-bottom:32px; cursor:pointer; }
+    .sidebar-logo .logo-icon { width:36px; height:36px; background:var(--neon-purple); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; color:#fff; flex-shrink:0; box-shadow:0 0 20px var(--neon-purple-glow); }
+    .sidebar-logo .logo-text { font-weight:700; font-size:18px; white-space:nowrap; opacity:0; transition:opacity var(--transition); }
+    .sidebar.expanded .sidebar-logo .logo-text { opacity:1; }
+    .sidebar-logo .logo-sub { font-size:10px; color:var(--text-secondary); letter-spacing:1px; white-space:nowrap; opacity:0; transition:opacity var(--transition); }
+    .sidebar.expanded .sidebar-logo .logo-sub { opacity:1; }
+    .sidebar-user { width:100%; padding:0 16px; margin-bottom:20px; opacity:0; transition:opacity var(--transition); overflow:hidden; }
+    .sidebar.expanded .sidebar-user { opacity:1; }
+    .sidebar-user-name { display:block; font-size:13px; color:var(--text-secondary); white-space:nowrap; margin-bottom:8px; }
+    .sidebar-user-name .admin-badge { font-size:10px; background:var(--neon-purple-dim); color:var(--neon-purple); border:1px solid rgba(124,58,237,0.3); padding:2px 8px; border-radius:10px; margin-left:6px; }
+    .sidebar-nav { display:flex; flex-direction:column; gap:6px; width:100%; padding:0 12px; flex:1; }
     .sidebar-nav .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      color: var(--text-secondary);
-      text-decoration: none;
-      transition: all var(--transition);
-      cursor: pointer;
-      white-space: nowrap;
-      overflow: hidden;
-      position: relative;
+      display:flex; align-items:center; gap:14px; padding:10px 14px; border-radius:var(--radius-sm);
+      color:var(--text-secondary); text-decoration:none; transition:all var(--transition); cursor:pointer;
+      white-space:nowrap; overflow:hidden; position:relative;
     }
-    .sidebar-nav .nav-item i {
-      font-size: 18px;
-      width: 22px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-    .sidebar-nav .nav-item span {
-      font-size: 14px;
-      font-weight: 500;
-      opacity: 0;
-      transition: opacity var(--transition);
-    }
-    .sidebar.expanded .sidebar-nav .nav-item span { opacity: 1; }
-    .sidebar-nav .nav-item:hover {
-      background: var(--bg-hover);
-      color: var(--text-primary);
-    }
-    .sidebar-nav .nav-item.active {
-      background: var(--neon-purple-dim);
-      color: var(--neon-purple);
-      box-shadow: inset 3px 0 0 var(--neon-purple);
-    }
-    .sidebar-nav .nav-item.active::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 3px;
-      height: 24px;
-      background: var(--neon-purple);
-      border-radius: 4px 0 0 4px;
-    }
-
-    .sidebar-toggle {
-      margin-top: auto;
-      padding: 10px 14px;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      color: var(--text-muted);
-      cursor: pointer;
-      border-radius: var(--radius-sm);
-      transition: all var(--transition);
-      background: none;
-      border: none;
-      font-family: var(--font);
-      font-size: 14px;
-      color: var(--text-secondary);
-    }
-    .sidebar-toggle:hover {
-      background: var(--bg-hover);
-      color: var(--text-primary);
-    }
-    .sidebar-toggle i {
-      font-size: 18px;
-      width: 22px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-    .sidebar-toggle span {
-      opacity: 0;
-      transition: opacity var(--transition);
-    }
-    .sidebar.expanded .sidebar-toggle span { opacity: 1; }
+    .sidebar-nav .nav-item i { font-size:18px; width:22px; text-align:center; flex-shrink:0; }
+    .sidebar-nav .nav-item span { font-size:14px; font-weight:500; opacity:0; transition:opacity var(--transition); }
+    .sidebar.expanded .sidebar-nav .nav-item span { opacity:1; }
+    .sidebar-nav .nav-item:hover { background:var(--bg-hover); color:var(--text-primary); }
+    .sidebar-nav .nav-item.active { background:var(--neon-purple-dim); color:var(--neon-purple); box-shadow:inset 3px 0 0 var(--neon-purple); }
+    .sidebar-toggle { margin-top:auto; padding:10px 14px; width:100%; display:flex; align-items:center; gap:14px; cursor:pointer; border-radius:var(--radius-sm); transition:all var(--transition); background:none; border:none; font-family:var(--font); font-size:14px; color:var(--text-secondary); }
+    .sidebar-toggle:hover { background:var(--bg-hover); color:var(--text-primary); }
+    .sidebar-toggle i { font-size:18px; width:22px; text-align:center; flex-shrink:0; }
+    .sidebar-toggle span { opacity:0; transition:opacity var(--transition); }
+    .sidebar.expanded .sidebar-toggle span { opacity:1; }
 
     /* ===== MAIN ===== */
-    .main {
-      margin-left: 68px;
-      flex: 1;
-      height: 100vh;
-      overflow-y: auto;
-      padding: 24px 32px 40px;
-      transition: margin-left var(--transition);
-      background: var(--bg-primary);
-      position: relative;
-    }
-    .main.expanded { margin-left: 260px; }
+    .main { margin-left:68px; flex:1; height:100vh; overflow-y:auto; padding:24px 32px 40px; transition:margin-left var(--transition); background:var(--bg-primary); }
+    .main.expanded { margin-left:260px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; border-bottom:1px solid var(--border-color); margin-bottom:28px; flex-wrap:wrap; gap:16px; }
+    .topbar-left { display:flex; align-items:center; gap:16px; }
+    .page-title { font-size:20px; font-weight:700; background:linear-gradient(135deg,#fff 40%,var(--neon-purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .page-sub { font-size:13px; color:var(--neon-purple); font-weight:400; }
+    .page-sub::before { content:'· '; color:var(--text-muted); }
+    .topbar-right .badge { background:var(--neon-purple-dim); color:var(--neon-purple); padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600; border:1px solid rgba(124,58,237,0.2); }
 
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border-color);
-      margin-bottom: 28px;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .topbar-left .page-title {
-      font-size: 20px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #fff 40%, var(--neon-purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .topbar-left .page-sub {
-      font-size: 13px;
-      color: var(--neon-purple);
-      font-weight: 400;
-      -webkit-text-fill-color: var(--neon-purple);
-      background: none;
-    }
-    .topbar-left .page-sub::before {
-      content: '· ';
-      color: var(--text-muted);
-      -webkit-text-fill-color: var(--text-muted);
-    }
-
-    /* ===== SIDEBAR USER (Jogador / Sair) ===== */
-    .sidebar-user {
-      width: 100%;
-      padding: 0 16px;
-      margin-bottom: 20px;
-      opacity: 0;
-      transition: opacity var(--transition);
-      overflow: hidden;
-    }
-    .sidebar.expanded .sidebar-user { opacity: 1; }
-    .sidebar-user .sidebar-user-name {
-      display: block;
-      font-size: 14px;
-      color: var(--text-secondary);
-      white-space: nowrap;
-      margin-bottom: 10px;
-    }
-    .sidebar-user #logoutBtn {
-      width: 100%;
-      justify-content: center;
-      border-radius: 30px;
-      padding: 10px 16px;
-      font-size: 13px;
-    }
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .topbar-right .badge {
-      background: var(--neon-purple-dim);
-      color: var(--neon-purple);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      border: 1px solid rgba(124, 58, 237, 0.2);
-    }
-    .topbar-right .badge i { margin-right: 6px; }
-
-    /* ===== PÁGINAS ===== */
-    .page { display: none; animation: fadeSlideIn 0.3s ease; }
-    .page.active { display: block; }
+    /* ===== PAGES ===== */
+    .page { display:none; animation:fadeSlideIn 0.3s ease; }
+    .page.active { display:block; }
 
     /* ===== STATS ===== */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-    .stat-card {
-      background: transparent;
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: 0;
-      transition: all var(--transition);
-    }
-    .stat-card:hover { transform: translateY(-2px); }
-    .stat-card .stat-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-    .stat-card .stat-value {
-      font-size: 26px;
-      font-weight: 700;
-      margin-top: 4px;
-      background: linear-gradient(135deg, #fff 30%, var(--neon-purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .stat-card .stat-detail {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:28px; }
+    .stat-card { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:20px; }
+    .stat-card .stat-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); font-weight:600; }
+    .stat-card .stat-value { font-size:26px; font-weight:700; margin-top:4px; background:linear-gradient(135deg,#fff 30%,var(--neon-purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
 
-    /* ===== CARDS / PANELS ===== */
-    .panel {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      padding: 24px 28px;
-      margin-bottom: 24px;
-      transition: all var(--transition);
-    }
-    .panel:hover { border-color: rgba(124, 58, 237, 0.2); }
-    .panel-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .panel-title i { color: var(--neon-purple); }
+    /* ===== PANELS ===== */
+    .panel { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius); padding:24px 28px; margin-bottom:24px; }
+    .panel:hover { border-color:rgba(124,58,237,0.2); transition:all var(--transition); }
+    .panel-title { font-size:18px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+    .panel-title i { color:var(--neon-purple); }
 
-    .flex-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      align-items: center;
-    }
-    .flex-row .flex-grow { flex: 1; min-width: 200px; }
+    /* ===== BUTTONS ===== */
+    .btn { padding:12px 24px; border:none; border-radius:var(--radius-sm); font-family:var(--font); font-weight:600; font-size:14px; cursor:pointer; transition:all var(--transition); display:inline-flex; align-items:center; gap:8px; }
+    .btn-primary { background:var(--neon-purple); color:#fff; box-shadow:0 0 25px var(--neon-purple-glow); }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 0 40px var(--neon-purple-glow); }
+    .btn-secondary { background:var(--bg-hover); color:var(--text-secondary); border:1px solid var(--border-color); }
+    .btn-secondary:hover { background:var(--border-color); color:var(--text-primary); }
+    .btn-danger { background:rgba(239,68,68,0.15); color:#F87171; border:1px solid rgba(239,68,68,0.2); }
+    .btn-danger:hover { background:rgba(239,68,68,0.25); }
+    .btn-success { background:rgba(16,185,129,0.15); color:#34D399; border:1px solid rgba(16,185,129,0.2); }
+    .btn-success:hover { background:rgba(16,185,129,0.25); }
+    .btn-sm { padding:8px 14px; font-size:12px; }
+    .btn:disabled { opacity:0.5; cursor:not-allowed; transform:none !important; }
 
     /* ===== INPUTS ===== */
-    .input-wrap {
-      position: relative;
+    .input-group { margin-bottom:14px; }
+    .input-group label { display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
+    .input-group input, .input-group select, .input-group textarea {
+      width:100%; padding:12px 16px; background:var(--bg-primary); border:1px solid var(--border-color);
+      border-radius:var(--radius-sm); color:var(--text-primary); font-family:var(--font); font-size:14px; outline:none; transition:all var(--transition);
     }
-    .input-wrap i {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      font-size: 16px;
-    }
-    .input-wrap input,
-    .input-wrap select,
-    .input-wrap textarea {
-      width: 100%;
-      padding: 14px 16px 14px 48px;
-      background: var(--bg-primary);
-      border: 2px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      color: var(--text-primary);
-      font-family: var(--font);
-      font-size: 14px;
-      transition: all var(--transition);
-      outline: none;
-    }
-    .input-wrap textarea {
-      padding: 14px 16px;
-      resize: vertical;
-      min-height: 80px;
-    }
-    .input-wrap input:focus,
-    .input-wrap select:focus,
-    .input-wrap textarea:focus {
-      border-color: var(--neon-purple);
-      box-shadow: 0 0 25px var(--neon-purple-glow);
-    }
-    .input-wrap input::placeholder,
-    .input-wrap textarea::placeholder { color: var(--text-muted); font-size: 14px; }
-    .input-wrap select option { background: var(--bg-primary); }
+    .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color:var(--neon-purple); box-shadow:0 0 15px var(--neon-purple-glow); }
+    .input-group input::placeholder, .input-group textarea::placeholder { color:var(--text-muted); }
+    .input-group select option { background:var(--bg-primary); }
 
-    /* ===== BOTÕES ===== */
-    .btn {
-      padding: 14px 28px;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-family: var(--font);
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all var(--transition);
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      position: relative;
-      overflow: hidden;
-    }
-    .btn-primary {
-      background: var(--neon-purple);
-      color: #fff;
-      box-shadow: 0 0 25px var(--neon-purple-glow);
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 40px var(--neon-purple-glow);
-    }
-    .btn-primary:active { transform: scale(0.97); }
-    .btn-secondary {
-      background: var(--bg-hover);
-      color: var(--text-secondary);
-      border: 1px solid var(--border-color);
-    }
-    .btn-secondary:hover {
-      background: var(--border-color);
-      color: var(--text-primary);
-    }
-    .btn-danger {
-      background: rgba(239, 68, 68, 0.15);
-      color: #F87171;
-      border: 1px solid rgba(239, 68, 68, 0.2);
-    }
-    .btn-danger:hover {
-      background: rgba(239, 68, 68, 0.25);
-    }
-    .btn-sm {
-      padding: 8px 16px;
-      font-size: 12px;
-      border-radius: var(--radius-sm);
-    }
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
+    /* ===== TABLES ===== */
+    .table-wrap { overflow-x:auto; }
+    .styled-table { width:100%; border-collapse:collapse; background:var(--bg-secondary); border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border-color); }
+    .styled-table th { background:var(--bg-hover); color:var(--neon-purple); padding:12px 16px; text-align:left; font-weight:500; font-size:13px; }
+    .styled-table td { padding:12px 16px; border-bottom:1px solid var(--border-color); font-size:13px; }
+    .styled-table tr:last-child td { border-bottom:none; }
+    .styled-table tr:hover td { background:rgba(124,58,237,0.04); }
+    .power-cell { color:#f1c40f; font-weight:600; }
+    .discord-link { color:#7289da; text-decoration:none; }
+    .discord-link:hover { text-decoration:underline; }
 
-    /* ===== LISTAS ===== */
-    .item-list {
-      list-style: none;
-      padding: 0;
-      margin: 12px 0;
-      max-height: 200px;
-      overflow-y: auto;
-      background: var(--bg-primary);
-      border-radius: var(--radius-sm);
-      padding: 6px 10px;
-      border: 1px solid var(--border-color);
-    }
-    .item-list li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 4px;
-      border-bottom: 1px solid var(--border-color);
-      font-size: 14px;
-    }
-    .item-list li:last-child { border-bottom: none; }
+    /* ===== STATUS BADGES ===== */
+    .status-badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+    .status-active { background:rgba(16,185,129,0.15); color:#34D399; border:1px solid rgba(16,185,129,0.2); }
+    .status-inactive { background:rgba(239,68,68,0.15); color:#F87171; border:1px solid rgba(239,68,68,0.2); }
+    .status-partial { background:rgba(245,158,11,0.15); color:#FBD24D; border:1px solid rgba(245,158,11,0.2); }
 
-    /* ===== TOTAL BAR ===== */
-    .total-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: center;
-      gap: 20px 40px;
-      background: var(--bg-secondary);
-      border-radius: 60px;
-      padding: 14px 30px;
-      margin: 16px auto;
-      border: 1px solid var(--border-color);
-      box-shadow: var(--shadow-glow);
-      max-width: 700px;
-    }
-    .total-item {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-      font-size: 18px;
-    }
-    .total-item .label { color: var(--text-muted); font-weight: 300; }
-    .total-item .value {
-      font-weight: bold;
-      color: var(--neon-purple);
-      font-size: 22px;
-    }
-    .diff {
-      font-size: 22px;
-      font-weight: 600;
-      color: #f1c40f;
-      padding: 0 12px;
-      border-left: 1px solid var(--border-color);
-      border-right: 1px solid var(--border-color);
-    }
+    /* ===== TRADE CALCULATOR ===== */
+    .trade-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    @media(max-width:768px) { .trade-grid { grid-template-columns:1fr; } }
+    .trade-side { background:var(--bg-primary); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:16px; }
+    .trade-side h4 { font-size:13px; color:var(--text-secondary); margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
+    .item-list { list-style:none; max-height:200px; overflow-y:auto; margin:8px 0; }
+    .item-list li { display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid var(--border-color); font-size:13px; }
+    .item-list li:last-child { border-bottom:none; }
+    .total-bar { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:20px 40px; background:var(--bg-secondary); border-radius:60px; padding:14px 30px; margin:16px auto; border:1px solid var(--border-color); box-shadow:var(--shadow-glow); max-width:700px; }
+    .total-item { display:flex; align-items:baseline; gap:6px; font-size:16px; }
+    .total-item .label { color:var(--text-muted); }
+    .total-item .value { font-weight:700; color:var(--neon-purple); font-size:20px; }
+    .diff { font-size:20px; font-weight:600; color:#f1c40f; padding:0 12px; border-left:1px solid var(--border-color); border-right:1px solid var(--border-color); }
+    #res { font-size:16px; color:var(--neon-purple); font-weight:300; }
 
-    /* ===== SUGESTÕES DROPDOWN ===== */
-    .suggest-wrap { position: relative; margin-top: 12px; }
-    .suggest-btn {
-      width: 100%;
-      padding: 10px 16px;
-      background: var(--bg-hover);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      color: var(--text-secondary);
-      font-family: var(--font);
-      font-size: 14px;
-      cursor: pointer;
-      transition: all var(--transition);
-      text-align: center;
-    }
-    .suggest-btn:hover {
-      background: var(--border-color);
-      color: var(--text-primary);
-    }
-    .suggest-dropdown {
-      display: none;
-      position: absolute;
-      top: 110%;
-      left: 0;
-      right: 0;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      padding: 8px 0;
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 50;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-    }
-    .suggest-dropdown.show { display: block; }
-    .suggest-dropdown .suggest-item {
-      display: block;
-      width: 100%;
-      padding: 8px 16px;
-      background: transparent;
-      border: none;
-      color: var(--text-secondary);
-      font-family: var(--font);
-      font-size: 14px;
-      text-align: left;
-      cursor: pointer;
-      transition: all var(--transition);
-    }
-    .suggest-dropdown .suggest-item:hover {
-      background: var(--bg-hover);
-      color: var(--text-primary);
-    }
+    /* ===== SEARCH ===== */
+    .search-wrap { position:relative; margin-bottom:10px; }
+    .search-wrap i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted); }
+    .search-wrap input { width:100%; padding:10px 12px 10px 36px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-family:var(--font); font-size:13px; outline:none; transition:all var(--transition); }
+    .search-wrap input:focus { border-color:var(--neon-purple); }
+    .suggest-dropdown { display:none; position:absolute; top:110%; left:0; right:0; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:6px 0; max-height:200px; overflow-y:auto; z-index:50; box-shadow:0 8px 30px rgba(0,0,0,0.6); }
+    .suggest-dropdown.show { display:block; }
+    .suggest-item { display:block; width:100%; padding:8px 14px; background:transparent; border:none; color:var(--text-secondary); font-family:var(--font); font-size:13px; text-align:left; cursor:pointer; transition:all var(--transition); }
+    .suggest-item:hover { background:var(--bg-hover); color:var(--text-primary); }
 
-    /* ===== TABELAS ===== */
-    .table-wrap { overflow-x: auto; }
-    .styled-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--bg-secondary);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-    }
-    .styled-table th {
-      background: var(--bg-hover);
-      color: var(--neon-purple);
-      padding: 12px 16px;
-      text-align: left;
-      font-weight: 500;
-      letter-spacing: 0.5px;
-    }
-    .styled-table td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border-color);
-    }
-    .styled-table tr:last-child td { border-bottom: none; }
-    .styled-table .power { color: #f1c40f; font-weight: 600; }
-    .styled-table .discord-link { color: #7289da; text-decoration: none; }
-    .styled-table .discord-link:hover { text-decoration: underline; }
+    /* ===== ADMIN PANEL ===== */
+    .admin-header { background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(124,58,237,0.05)); border:1px solid rgba(124,58,237,0.3); border-radius:var(--radius); padding:20px 24px; margin-bottom:24px; display:flex; align-items:center; gap:16px; }
+    .admin-header i { font-size:28px; color:var(--neon-purple); }
+    .admin-header h2 { font-size:20px; font-weight:700; }
+    .admin-header p { font-size:13px; color:var(--text-secondary); margin-top:2px; }
+    .admin-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+    .admin-tab { padding:10px 20px; border:1px solid var(--border-color); border-radius:var(--radius-sm); background:var(--bg-secondary); color:var(--text-secondary); font-family:var(--font); font-size:13px; cursor:pointer; transition:all var(--transition); }
+    .admin-tab.active { border-color:var(--neon-purple); color:var(--neon-purple); background:var(--neon-purple-dim); }
+    .admin-section { display:none; }
+    .admin-section.active { display:block; }
+    .users-grid { display:grid; gap:12px; }
+    .user-card { background:var(--bg-primary); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+    .user-card-info { display:flex; flex-direction:column; gap:4px; }
+    .user-card-name { font-weight:600; font-size:14px; }
+    .user-card-meta { font-size:12px; color:var(--text-muted); }
+    .user-card-actions { display:flex; gap:8px; }
+    .type-badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+    .type-admin { background:rgba(124,58,237,0.2); color:var(--neon-purple); border:1px solid rgba(124,58,237,0.3); }
+    .type-user { background:rgba(160,160,160,0.1); color:var(--text-secondary); border:1px solid var(--border-color); }
 
-    .player-actions button {
-      background: transparent;
-      border: 1px solid var(--border-color);
-      color: var(--text-secondary);
-      padding: 4px 12px;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: all var(--transition);
-      font-size: 13px;
-      margin-right: 4px;
-      font-family: var(--font);
-    }
-    .player-actions button:hover {
-      background: var(--bg-hover);
-      color: var(--text-primary);
-    }
-    .player-actions .del-btn:hover {
-      border-color: #F87171;
-      color: #F87171;
-    }
+    /* ===== ITEM EDITOR ===== */
+    .items-search { margin-bottom:16px; }
+    .item-edit-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-color); }
+    .item-edit-row:last-child { border-bottom:none; }
+    .item-edit-row span { flex:1; font-size:13px; color:var(--text-secondary); }
+    .item-edit-row input { width:90px; padding:6px 10px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); text-align:center; font-family:var(--font); font-size:13px; outline:none; }
+    .item-edit-row input:focus { border-color:var(--neon-purple); }
 
-    /* ===== EDIT ITEMS ===== */
-    .edit-items-panel .item-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border-color);
-    }
-    .edit-items-panel .item-row span { flex: 1; color: var(--text-secondary); }
-    .edit-items-panel .item-row input {
-      width: 80px;
-      padding: 6px 10px;
-      background: var(--bg-primary);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      color: var(--text-primary);
-      text-align: center;
-      font-family: var(--font);
-      outline: none;
-    }
-    .edit-items-panel .item-row input:focus {
-      border-color: var(--neon-purple);
-      box-shadow: 0 0 15px var(--neon-purple-glow);
-    }
-
-    /* ===== PROMOÇÃO ===== */
-    .promo-output {
-      width: 100%;
-      padding: 14px 18px;
-      background: var(--bg-primary);
-      border: 2px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      color: var(--text-primary);
-      font-family: var(--font);
-      font-size: 14px;
-      resize: vertical;
-      min-height: 300px;
-      outline: none;
-      transition: all var(--transition);
-      white-space: pre-wrap;
-    }
-    .promo-output:focus {
-      border-color: var(--neon-purple);
-      box-shadow: 0 0 25px var(--neon-purple-glow);
-    }
-    .promo-field-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    .promo-field-group .full-width { grid-column: 1 / -1; }
-    @media (max-width: 768px) {
-      .promo-field-group { grid-template-columns: 1fr; }
-      .promo-field-group .full-width { grid-column: 1; }
-    }
-
-    /* ===== SISTEMA ===== */
-    .sistema-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 16px;
-      margin-top: 16px;
-    }
-    .sistema-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      padding: 20px 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: all var(--transition);
-    }
-    .sistema-card:hover { border-color: rgba(124, 58, 237, 0.2); }
-    .sistema-card .label {
-      color: var(--text-muted);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .sistema-card .value {
-      color: var(--text-primary);
-      font-size: 20px;
-      font-weight: 300;
-    }
-    .sistema-card .btn-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .sistema-card .btn-group .btn { font-size: 13px; padding: 8px 16px; }
-    .sistema-card input[type="file"] { display: none; }
-    .sistema-card textarea {
-      width: 100%;
-      padding: 10px 14px;
-      background: var(--bg-primary);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      color: var(--text-secondary);
-      font-family: var(--font);
-      font-size: 13px;
-      resize: vertical;
-      min-height: 60px;
-      outline: none;
-      transition: all var(--transition);
-    }
-    .sistema-card textarea:focus {
-      border-color: var(--neon-purple);
-      box-shadow: 0 0 15px var(--neon-purple-glow);
-    }
-
-    .limit-warn {
-      color: #f59e0b;
-      font-size: 13px;
-      margin-left: 8px;
-    }
+    /* ===== PROMO ===== */
+    .promo-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px; }
+    @media(max-width:600px) { .promo-grid { grid-template-columns:1fr; } }
+    .promo-output { width:100%; padding:14px 18px; background:var(--bg-primary); border:2px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-family:var(--font); font-size:13px; resize:vertical; min-height:280px; outline:none; transition:all var(--transition); }
+    .promo-output:focus { border-color:var(--neon-purple); }
 
     /* ===== MODAL ===== */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(6px);
-      z-index: 200;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      animation: fadeIn 0.3s ease;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal-box {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      padding: 32px 36px;
-      max-width: 480px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
-      animation: scaleIn 0.3s ease;
-    }
-    .modal-box .modal-title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .modal-box .modal-title i { color: var(--neon-purple); }
-    .modal-box .modal-body { color: var(--text-secondary); font-size: 14px; line-height: 1.7; }
-    .modal-box .modal-body .field {
-      margin-bottom: 14px;
-    }
-    .modal-box .modal-body label {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-    .modal-box .modal-body input,
-    .modal-box .modal-body select {
-      width: 100%;
-      padding: 10px 14px;
-      background: var(--bg-primary);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      color: var(--text-primary);
-      font-family: var(--font);
-      font-size: 14px;
-      outline: none;
-      transition: all var(--transition);
-    }
-    .modal-box .modal-body input:focus,
-    .modal-box .modal-body select:focus {
-      border-color: var(--neon-purple);
-      box-shadow: 0 0 15px var(--neon-purple-glow);
-    }
-    .modal-box .modal-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 20px;
-      justify-content: flex-end;
-    }
+    .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); z-index:200; display:none; align-items:center; justify-content:center; }
+    .modal-overlay.active { display:flex; }
+    .modal-box { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius); padding:32px 36px; max-width:500px; width:90%; max-height:85vh; overflow-y:auto; box-shadow:0 0 60px rgba(0,0,0,0.6); animation:scaleIn 0.3s ease; }
+    .modal-title { font-size:18px; font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+    .modal-title i { color:var(--neon-purple); }
+    .modal-actions { display:flex; gap:10px; margin-top:20px; justify-content:flex-end; }
+    .flex-row { display:flex; gap:12px; flex-wrap:wrap; }
 
     /* ===== TOAST ===== */
-    .toast-container {
-      position: fixed;
-      bottom: 28px;
-      right: 28px;
-      z-index: 300;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .toast {
-      padding: 14px 22px;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      color: var(--text-primary);
-      font-size: 13px;
-      font-family: var(--font);
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-      animation: slideUp 0.4s ease;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 200px;
-      border-left: 3px solid var(--neon-purple);
-    }
-    .toast.success { border-left-color: #34D399; }
-    .toast.error { border-left-color: #F87171; }
+    .toast-container { position:fixed; bottom:28px; right:28px; z-index:300; display:flex; flex-direction:column; gap:10px; }
+    .toast { padding:14px 22px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-size:13px; box-shadow:0 0 30px rgba(0,0,0,0.5); animation:slideUp 0.4s ease; display:flex; align-items:center; gap:12px; min-width:200px; border-left:3px solid var(--neon-purple); }
+    .toast.success { border-left-color:#34D399; }
+    .toast.error { border-left-color:#F87171; }
 
-    /* ===== ANIMAÇÕES ===== */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes scaleIn {
-      from { opacity: 0; transform: scale(0.92); }
-      to { opacity: 1; transform: scale(1); }
-    }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    /* ===== LOADING ===== */
+    .loading-overlay { position:fixed; inset:0; background:var(--bg-primary); z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; }
+    .loading-spinner { width:48px; height:48px; border:3px solid var(--border-color); border-top-color:var(--neon-purple); border-radius:50%; animation:spin 0.8s linear infinite; }
+    .loading-text { color:var(--text-secondary); font-size:13px; letter-spacing:2px; }
 
-    .hidden { display: none !important; }
-    .text-purple { color: var(--neon-purple); }
-    .mt-2 { margin-top: 12px; }
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-muted);
-      grid-column: 1 / -1;
-    }
-    .empty-state i {
-      font-size: 48px;
-      color: var(--text-muted);
-      margin-bottom: 16px;
-      opacity: 0.3;
-    }
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes fadeSlideIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes scaleIn { from { opacity:0; transform:scale(0.92); } to { opacity:1; transform:scale(1); } }
+    @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .hidden { display:none !important; }
 
-    /* ===== LOGIN SCREEN ===== */
-    body:has(#loginScreen) {
-      background: radial-gradient(circle at 50% 42%, rgba(124, 58, 237, 0.16), transparent 60%), var(--bg-primary);
-    }
-    #loginScreen {
-      display: flex;
-      flex-direction: column;
-    }
-    #loginScreen h1 {
-      font-family: 'Orbitron', var(--font);
-      font-size: 34px;
-      font-weight: 500;
-      letter-spacing: 6px;
-      color: #A78BFA;
-      text-align: center;
-      margin-bottom: 32px;
-    }
-    #loginScreen .mobile-warning {
-      text-align: center;
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 18px;
-      line-height: 1.5;
-    }
-    #loginScreen .field { text-align: left; margin-bottom: 20px; }
-    #loginScreen .field label {
-      display: block;
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-bottom: 8px;
-    }
-    #loginScreen .field input {
-      width: 100%;
-      padding: 15px 20px;
-      background: var(--bg-hover);
-      border: 1px solid var(--border-color);
-      border-radius: 30px;
-      color: var(--text-primary);
-      font-family: var(--font);
-      font-size: 14px;
-      outline: none;
-      transition: all var(--transition);
-    }
-    #loginScreen .field input::placeholder { color: var(--text-muted); }
-    #loginScreen .field input:focus {
-      border-color: var(--neon-purple);
-      box-shadow: 0 0 25px var(--neon-purple-glow);
-    }
-    #loginScreen #loginBtn {
-      width: 100%;
-      justify-content: center;
-      border-radius: 30px;
-      margin-top: 12px;
-      background: #2E1A55;
-      border: 1px solid var(--neon-purple);
-      box-shadow: 0 0 25px var(--neon-purple-glow);
-    }
-    #loginScreen #loginBtn:hover { background: #3B2270; }
-    #loginScreen #loginError { text-align: center; font-size: 13px; min-height: 18px; }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 768px) {
-      .sidebar { width: 56px; padding: 16px 0; }
-      .sidebar.expanded { width: 180px; }
-      .main { margin-left: 56px; padding: 16px 16px 30px; }
-      .main.expanded { margin-left: 180px; }
-      .panel { padding: 16px 18px; }
-      .flex-row { flex-direction: column; align-items: stretch; }
-      .flex-row .flex-grow { min-width: unset; }
-      .topbar { flex-direction: column; align-items: flex-start; }
-      .topbar-left .page-title { font-size: 17px; }
-      .stats-grid { grid-template-columns: 1fr 1fr; }
-      .sistema-grid { grid-template-columns: 1fr; }
-      .modal-box { padding: 24px 20px; }
-      .total-bar { flex-direction: column; gap: 10px; border-radius: 30px; padding: 20px; }
-      .diff { border: none; padding: 8px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
-    }
-    @media (max-width: 480px) {
-      .stats-grid { grid-template-columns: 1fr; }
-      .sidebar.expanded { width: 160px; }
-      .main.expanded { margin-left: 160px; }
-      .topbar-right .badge { font-size: 10px; padding: 4px 10px; }
+    @media(max-width:768px) {
+      .sidebar { width:56px; } .sidebar.expanded { width:180px; }
+      .main { margin-left:56px; padding:16px 16px 30px; } .main.expanded { margin-left:180px; }
+      .panel { padding:16px 18px; } .modal-box { padding:24px 20px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ===== LOGIN ===== -->
-  <div id="loginScreen" style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius);padding:40px 48px;max-width:400px;width:100%;margin:auto;text-align:center;">
+<!-- ===== LOADING ===== -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">CONECTANDO AO FIREBASE...</div>
+</div>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginScreen" style="display:none;">
+  <div class="login-box">
     <h1>C.O.A</h1>
-    <div class="field"><label>Usuário</label><input type="text" id="username" placeholder="Digite seu usuário"></div>
-    <div class="field"><label>Senha</label><input type="password" id="password" placeholder="Digite sua senha"></div>
-    <button class="btn btn-primary" id="loginBtn">Entrar</button>
-    <div id="loginError" style="color:#F87171;margin-top:12px;"></div>
-    <button class="btn btn-secondary" id="registerBtn" style="margin-top:8px; width:100%; justify-content:center;">
-      <i class="fas fa-user-plus"></i> Cadastrar novo usuário
+    <div class="subtitle">CYBER OPEN-SOURCE ANALYZER</div>
+    <div class="login-tabs">
+      <button class="login-tab active" id="tabLogin" onclick="switchTab('login')">Entrar</button>
+      <button class="login-tab" id="tabRegister" onclick="switchTab('register')">Cadastrar</button>
+    </div>
+    <div class="field"><label>Usuário</label><input type="text" id="username" placeholder="Digite seu usuário" /></div>
+    <div class="field"><label>Senha</label><input type="password" id="password" placeholder="Digite sua senha" /></div>
+    <button class="btn btn-primary" id="loginBtn" style="width:100%;justify-content:center;">
+      <i class="fas fa-sign-in-alt"></i> <span id="loginBtnText">Entrar</span>
     </button>
-    <div class="mobile-warning">Caso o sistema falhe visualmente no Mobile, coloque em Modo DESKTOP.</div>
+    <div id="loginError"></div>
+    <div class="mobile-warning">Caso o sistema falhe visualmente no Mobile, use o Modo Desktop.</div>
   </div>
+</div>
 
-  <!-- ===== APP (oculto até logar) ===== -->
-  <div id="appContainer" style="display:none;width:100%;height:100vh;overflow:hidden;">
+<!-- ===== APP ===== -->
+<div id="appContainer" style="display:none;width:100%;height:100vh;overflow:hidden;">
 
-    <!-- ===== SIDEBAR ===== -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-logo" id="sidebarLogo">
-        <div class="logo-icon">C</div>
-        <div style="display:flex;flex-direction:column;">
-          <span class="logo-text">C.O.A</span>
-          <span class="logo-sub">Cyber Open-source Analyzer</span>
-        </div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo" id="sidebarLogo">
+      <div class="logo-icon">C</div>
+      <div style="display:flex;flex-direction:column;">
+        <span class="logo-text">C.O.A</span>
+        <span class="logo-sub">Cyber Open-source Analyzer</span>
       </div>
-      <div class="sidebar-user" id="sidebarUser">
-        <span class="sidebar-user-name" id="userDisplay">Jogador: <strong>-</strong></span>
-        <button class="btn btn-danger btn-sm" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
-      </div>
-      <nav class="sidebar-nav">
-        <a class="nav-item active" data-page="dashboard" id="navDashboard"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
-        <a class="nav-item" data-page="calculadora" id="navCalculadora"><i class="fas fa-calculator"></i><span>Calculadora</span></a>
-        <a class="nav-item" data-page="jogadores" id="navJogadores"><i class="fas fa-users"></i><span>Jogadores</span></a>
-        <a class="nav-item" data-page="promocao" id="navPromocao"><i class="fas fa-user-plus"></i><span>Promoção</span></a>
-        <a class="nav-item adm-only" data-page="edit-items" id="navEditItems"><i class="fas fa-edit"></i><span>Editar Itens</span></a>
-        <a class="nav-item" data-page="sistema" id="navSistema"><i class="fas fa-gear"></i><span>Sistema</span></a>
-      </nav>
-      <button class="sidebar-toggle" id="sidebarToggle">
-        <i class="fas fa-chevron-right" id="toggleIcon"></i>
-        <span>Expandir</span>
+    </div>
+    <div class="sidebar-user">
+      <span class="sidebar-user-name" id="userDisplay">Jogador: <strong>—</strong></span>
+      <button class="btn btn-danger btn-sm" onclick="logout()" style="width:100%;justify-content:center;border-radius:20px;">
+        <i class="fas fa-sign-out-alt"></i> Sair
       </button>
-    </aside>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" data-page="dashboard"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+      <a class="nav-item" data-page="calculadora"><i class="fas fa-calculator"></i><span>Calculadora</span></a>
+      <a class="nav-item" data-page="jogadores"><i class="fas fa-users"></i><span>Jogadores</span></a>
+      <a class="nav-item" data-page="promocao"><i class="fas fa-user-plus"></i><span>Promoção</span></a>
+      <a class="nav-item" data-page="sistema"><i class="fas fa-gear"></i><span>Sistema</span></a>
+      <a class="nav-item admin-only" data-page="admin" style="display:none;"><i class="fas fa-shield-halved"></i><span>Admin</span></a>
+    </nav>
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <i class="fas fa-chevron-right" id="toggleIcon"></i>
+      <span>Expandir</span>
+    </button>
+  </aside>
 
-    <!-- ===== MAIN ===== -->
-    <main class="main" id="mainContent">
-      <header class="topbar">
-        <div class="topbar-left">
-          <span class="page-title" id="pageTitle">📊 Dashboard</span>
-          <span class="page-sub" id="pageSub">Visão geral</span>
-        </div>
-      </header>
-
-      <!-- ===== DASHBOARD ===== -->
-      <div class="page active" id="page-dashboard">
-        <div class="stats-grid" id="dashboardStats">
-          <div class="stat-card"><div class="stat-label">Jogadores</div><div class="stat-value" id="statPlayers">0</div></div>
-          <div class="stat-card"><div class="stat-label">Itens</div><div class="stat-value" id="statItems">0</div></div>
-          <div class="stat-card"><div class="stat-label">Última atualização</div><div class="stat-value" id="statLastUpdate" style="font-size:16px;">—</div></div>
-          <div class="stat-card"><div class="stat-label">Espaço usado</div><div class="stat-value" id="statStorage" style="font-size:18px;">0 KB</div></div>
-        </div>
-        <div class="panel">
-          <div class="panel-title"><i class="fas fa-bolt"></i> Atalhos rápidos</div>
-          <div style="display:flex;flex-wrap:wrap;gap:12px;">
-            <button class="btn btn-secondary" onclick="navigateTo('calculadora')">🧮 Calculadora</button>
-            <button class="btn btn-secondary" onclick="navigateTo('jogadores')">👥 Jogadores</button>
-            <button class="btn btn-secondary" onclick="navigateTo('promocao')">⭐ Promoção</button>
-            <button class="btn btn-secondary" onclick="navigateTo('sistema')">🔧 Sistema</button>
-          </div>
-        </div>
+  <main class="main" id="mainContent">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="page-title" id="pageTitle">📊 Dashboard</span>
+        <span class="page-sub" id="pageSub">Visão geral</span>
       </div>
-
-      <!-- ===== CALCULADORA ===== -->
-      <div class="page" id="page-calculadora">
-        <div class="panel">
-          <div class="panel-title"><i class="fas fa-arrow-right-arrow-left"></i> Calculadora de Troca</div>
-          <div style="display:flex;flex-wrap:wrap;gap:20px;">
-            <div style="flex:1;min-width:280px;">
-              <h4 style="color:var(--text-secondary);font-weight:400;margin-bottom:8px;display:flex;justify-content:space-between;">
-                <span><i class="fas fa-hand"></i> Você oferece</span>
-                <button class="btn btn-sm btn-danger" onclick="clearSide('L')">Limpar</button>
-              </h4>
-              <div class="input-wrap"><i class="fas fa-search"></i><input type="text" id="searchInputL" placeholder="Buscar item..." autocomplete="off"></div>
-              <div style="display:flex;gap:8px;margin-top:8px;">
-                <select id="a" style="flex:1;padding:12px 16px;background:var(--bg-primary);border:2px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:14px;outline:none;"></select>
-                <button class="btn btn-primary btn-sm" onclick='addItem("L", a.value)'>Adicionar</button>
-              </div>
-              <ul class="item-list" id="L"></ul>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
-                <span style="color:var(--text-secondary);">Total: <strong id="tl" style="color:var(--neon-purple);">0</strong></span>
-                <span class="limit-warn" id="warnL"></span>
-              </div>
-              <div class="suggest-wrap">
-                <button class="suggest-btn" onclick="toggleSuggest('L')"><i class="fas fa-box"></i> Sugestões de Conjuntos</button>
-                <div class="suggest-dropdown" id="suggestL"></div>
-              </div>
-            </div>
-            <div style="flex:1;min-width:280px;">
-              <h4 style="color:var(--text-secondary);font-weight:400;margin-bottom:8px;display:flex;justify-content:space-between;">
-                <span><i class="fas fa-hand-receiving"></i> Recebe</span>
-                <button class="btn btn-sm btn-danger" onclick="clearSide('R')">Limpar</button>
-              </h4>
-              <div class="input-wrap"><i class="fas fa-search"></i><input type="text" id="searchInputR" placeholder="Buscar item..." autocomplete="off"></div>
-              <div style="display:flex;gap:8px;margin-top:8px;">
-                <select id="b" style="flex:1;padding:12px 16px;background:var(--bg-primary);border:2px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:14px;outline:none;"></select>
-                <button class="btn btn-primary btn-sm" onclick='addItem("R", b.value)'>Adicionar</button>
-              </div>
-              <ul class="item-list" id="R"></ul>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
-                <span style="color:var(--text-secondary);">Total: <strong id="tr" style="color:var(--neon-purple);">0</strong></span>
-                <span class="limit-warn" id="warnR"></span>
-              </div>
-              <div class="suggest-wrap">
-                <button class="suggest-btn" onclick="toggleSuggest('R')"><i class="fas fa-box"></i> Sugestões de Conjuntos</button>
-                <div class="suggest-dropdown" id="suggestR"></div>
-              </div>
-            </div>
-          </div>
-          <div class="total-bar" style="margin-top:20px;">
-            <div class="total-item"><span class="label">Oferece:</span><span class="value" id="totalL">0</span></div>
-            <div class="total-item"><span class="label">Recebe:</span><span class="value" id="totalR">0</span></div>
-            <div class="diff" id="diffDisplay">0</div>
-            <div id="res" style="font-size:20px;color:var(--neon-purple);font-weight:300;">Troca justa</div>
-          </div>
-        </div>
+      <div class="topbar-right">
+        <span class="badge" id="topBadge"><i class="fas fa-circle-dot"></i> Online</span>
       </div>
+    </header>
 
-      <!-- ===== JOGADORES ===== -->
-      <div class="page" id="page-jogadores">
-        <div class="panel">
-          <div class="panel-title"><i class="fas fa-users"></i> Lista de Jogadores</div>
-          <div class="table-wrap">
-            <table class="styled-table">
-              <thead><tr><th>Nome</th><th>Poder</th><th>Discord</th><th>Inativo</th><th>Participação</th><th class="adm-only" style="display:none;">Ações</th></tr></thead>
-              <tbody id="playersBody"></tbody>
-            </table>
-          </div>
-          <div id="addPlayerArea" style="display:none;margin-top:20px;padding:16px;background:var(--bg-primary);border-radius:var(--radius-sm);border:1px solid var(--border-color);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
-            <input type="text" id="newPlayerName" placeholder="Nome" style="flex:1;min-width:120px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
-            <input type="text" id="newPlayerPower" placeholder="Poder (ex: 5.2M)" style="flex:1;min-width:100px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
-            <input type="text" id="newPlayerDiscord" placeholder="Link Discord" style="flex:1;min-width:120px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
-            <select id="newPlayerInactive" style="padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
-              <option value="não">Não</option><option value="sim">Sim</option><option value="parcial">Parcial</option>
-            </select>
-            <input type="number" id="newPlayerParticipation" placeholder="0-10" min="0" max="10" step="1" value="0" style="width:80px;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
-            <button class="btn btn-primary" id="addPlayerBtn">Adicionar</button>
-          </div>
-          <div id="guestMsg" style="color:var(--text-muted);margin-top:12px;display:none;">Modo convidado: visualização apenas.</div>
-        </div>
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Jogadores</div><div class="stat-value" id="statPlayers">—</div></div>
+        <div class="stat-card"><div class="stat-label">Itens</div><div class="stat-value" id="statItems">—</div></div>
+        <div class="stat-card"><div class="stat-label">Usuários</div><div class="stat-value" id="statUsers">—</div></div>
+        <div class="stat-card"><div class="stat-label">Status</div><div class="stat-value" style="font-size:16px;color:#34D399;">Firebase ✓</div></div>
       </div>
-
-      <!-- ===== PROMOÇÃO ===== -->
-      <div class="page" id="page-promocao">
-        <div class="panel">
-          <div class="panel-title"><i class="fas fa-user-plus"></i> Gerador de Promoção</div>
-          <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px;">
-            Crie uma mensagem de promoção formatada para divulgação.
-          </p>
-          <div class="promo-field-group">
-            <div class="input-wrap"><i class="fas fa-user-tie"></i><input type="text" id="promoResponsavel" placeholder="Responsável (ADM/Mod)" value=""></div>
-            <div class="input-wrap"><i class="fas fa-user"></i><input type="text" id="promoIndividuo" placeholder="Nick do promovido" list="playerSuggestions"><datalist id="playerSuggestions"></datalist></div>
-            <div class="input-wrap"><i class="fas fa-arrow-down"></i><input type="text" id="promoPatenteAntiga" placeholder="Patente antiga (ex: [Tg-Elite] Tigre de Elite.)" list="rankSuggestions"></div>
-            <div class="input-wrap"><i class="fas fa-arrow-up"></i><input type="text" id="promoPatenteNova" placeholder="Patente nova (ex: [3° Class] Tigre de Terceira Classe.)" list="rankSuggestions"></div>
-            <div class="input-wrap full-width"><i class="fas fa-pencil-alt" style="top:18px;transform:none;"></i><textarea id="promoMotivo" placeholder="Motivo da promoção (padrão: capacitação de patente concluída.)" style="padding-left:48px;">capacitação de patente concluída.</textarea></div>
-          </div>
-          <datalist id="rankSuggestions">
-            <option value="[ALT-COM] Alto-Comando"><option value="[OF] Oficiais"><option value="[GD] Graduados"><option value="[PR] Praças"><option value="[Tg-Elite] Tigre de Elite."><option value="[3° Class] Tigre de Terceira Classe.">
-          </datalist>
-          <div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;">
-            <button class="btn btn-primary" id="generatePromoBtn"><i class="fas fa-wand-magic-sparkles"></i> Gerar Promoção</button>
-            <button class="btn btn-secondary" id="copyPromoBtn"><i class="fas fa-copy"></i> Copiar</button>
-            <button class="btn btn-secondary" id="downloadPromoTxtBtn"><i class="fas fa-file-alt"></i> Baixar .txt</button>
-            <button class="btn btn-secondary" id="clearPromoBtn"><i class="fas fa-eraser"></i> Limpar</button>
-          </div>
-          <textarea class="promo-output" id="promoOutput" readonly placeholder="A mensagem de promoção aparecerá aqui..."></textarea>
-        </div>
-      </div>
-
-      <!-- ===== EDITAR ITENS (ADM) ===== -->
-      <div class="page" id="page-edit-items">
-        <div class="panel">
-          <div class="panel-title"><i class="fas fa-edit"></i> Editar Valores dos Itens</div>
-          <div class="edit-items-panel" id="editItemsContainer"></div>
-          <div style="margin-top:16px;">
-            <button class="btn btn-secondary" onclick="resetAllItems()"><i class="fas fa-undo"></i> Restaurar valores padrão</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== SISTEMA ===== -->
-      <div class="page" id="page-sistema">
-        <div class="panel">
-          <div class="panel-title"><i class="fas fa-gear"></i> Sistema</div>
-          <div class="sistema-grid">
-            <div class="sistema-card"><span class="label">Espaço utilizado</span><span class="value" id="storageSize">0 KB</span></div>
-            <div class="sistema-card"><span class="label">Última atualização</span><span class="value" id="lastUpdate">Nunca</span></div>
-            <div class="sistema-card">
-              <span class="label">Compartilhamento</span>
-              <div class="btn-group">
-                <button class="btn btn-secondary" onclick="exportFullData()"><i class="fas fa-file-export"></i> Exportar Lista</button>
-                <button class="btn btn-secondary" onclick="document.getElementById('importFileInput').click()"><i class="fas fa-file-import"></i> Importar Lista</button>
-                <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importFullData(event)">
-              </div>
-            </div>
-            <div class="sistema-card">
-              <span class="label">Código de Compartilhamento</span>
-              <div class="btn-group">
-                <button class="btn btn-secondary" onclick="copyShareCode()"><i class="fas fa-copy"></i> Copiar Código</button>
-                <button class="btn btn-secondary" onclick="importShareCode()"><i class="fas fa-file-import"></i> Importar Código</button>
-              </div>
-              <textarea id="shareCodeInput" placeholder="Cole o código Base64 aqui..."></textarea>
-            </div>
-            <div class="sistema-card">
-              <span class="label">Backup</span>
-              <div class="btn-group">
-                <button class="btn btn-secondary" onclick="exportBackup()"><i class="fas fa-download"></i> Exportar Backup</button>
-                <button class="btn btn-secondary" onclick="document.getElementById('restoreBackupInput').click()"><i class="fas fa-upload"></i> Restaurar Backup</button>
-                <input type="file" id="restoreBackupInput" accept=".json" style="display:none" onchange="restoreBackup(event)">
-              </div>
-            </div>
-            <div class="sistema-card adm-only" style="display:none;">
-              <span class="label">Gerenciamento</span>
-              <div class="btn-group">
-                <button class="btn btn-danger" onclick="clearAllStorage()"><i class="fas fa-trash"></i> Limpar LocalStorage</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div><!-- /appContainer -->
-
-  <!-- ===== MODAL ===== -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal-box">
-      <div class="modal-title"><i class="fas fa-user-edit"></i> <span id="modalTitle">Editar Jogador</span></div>
-      <div class="modal-body" id="modalBody">
-        <div class="field"><label>Nome</label><input type="text" id="editPlayerName" placeholder="Nome"></div>
-        <div class="field"><label>Poder</label><input type="text" id="editPlayerPower" placeholder="Poder (ex: 5.2M)"></div>
-        <div class="field"><label>Discord</label><input type="text" id="editPlayerDiscord" placeholder="Link Discord"></div>
-        <div class="field"><label>Inativo</label><select id="editPlayerInactive"><option value="não">Não</option><option value="sim">Sim</option><option value="parcial">Parcial</option></select></div>
-        <div class="field"><label>Participação (0-10)</label><input type="number" id="editPlayerParticipation" placeholder="0-10" min="0" max="10" step="1"></div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-          <button class="btn btn-primary" id="saveEditPlayerBtn">Salvar</button>
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-bolt"></i> Atalhos rápidos</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          <button class="btn btn-secondary" onclick="navigateTo('calculadora')">🧮 Calculadora</button>
+          <button class="btn btn-secondary" onclick="navigateTo('jogadores')">👥 Jogadores</button>
+          <button class="btn btn-secondary" onclick="navigateTo('promocao')">⭐ Promoção</button>
+          <button class="btn btn-secondary" onclick="navigateTo('sistema')">🔧 Sistema</button>
         </div>
       </div>
     </div>
+
+    <!-- CALCULADORA -->
+    <div class="page" id="page-calculadora">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-arrow-right-arrow-left"></i> Calculadora de Troca</div>
+        <div class="trade-grid">
+          <div class="trade-side">
+            <h4><span><i class="fas fa-hand"></i> Você oferece</span><button class="btn btn-danger btn-sm" onclick="clearSide('L')">Limpar</button></h4>
+            <div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="searchInputL" placeholder="Buscar item..." autocomplete="off"></div>
+            <div class="suggest-dropdown" id="suggestL"></div>
+            <select id="selectA" style="width:100%;padding:10px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:13px;margin-bottom:8px;outline:none;"></select>
+            <button class="btn btn-primary btn-sm" onclick="addItem('L')" style="width:100%;justify-content:center;margin-bottom:8px;">+ Adicionar</button>
+            <ul class="item-list" id="listL"></ul>
+            <div style="margin-top:8px;font-size:13px;color:var(--text-secondary);">Total: <strong style="color:var(--neon-purple);" id="totalL">0</strong></div>
+          </div>
+          <div class="trade-side">
+            <h4><span><i class="fas fa-hand-receiving"></i> Você recebe</span><button class="btn btn-danger btn-sm" onclick="clearSide('R')">Limpar</button></h4>
+            <div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="searchInputR" placeholder="Buscar item..." autocomplete="off"></div>
+            <div class="suggest-dropdown" id="suggestR"></div>
+            <select id="selectB" style="width:100%;padding:10px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:13px;margin-bottom:8px;outline:none;"></select>
+            <button class="btn btn-primary btn-sm" onclick="addItem('R')" style="width:100%;justify-content:center;margin-bottom:8px;">+ Adicionar</button>
+            <ul class="item-list" id="listR"></ul>
+            <div style="margin-top:8px;font-size:13px;color:var(--text-secondary);">Total: <strong style="color:var(--neon-purple);" id="totalR">0</strong></div>
+          </div>
+        </div>
+        <div class="total-bar">
+          <div class="total-item"><span class="label">Oferece:</span><span class="value" id="barL">0</span></div>
+          <div class="total-item"><span class="label">Recebe:</span><span class="value" id="barR">0</span></div>
+          <div class="diff" id="diffVal">0</div>
+          <div id="res">Troca justa</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOGADORES -->
+    <div class="page" id="page-jogadores">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-users"></i> Lista de Jogadores</div>
+        <div id="addPlayerArea" style="display:none;margin-bottom:20px;padding:16px;background:var(--bg-primary);border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px;">
+            <input type="text" id="newName" placeholder="Nome" style="padding:10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+            <input type="text" id="newPower" placeholder="Poder (ex: 5.2M)" style="padding:10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+            <input type="text" id="newDiscord" placeholder="Link Discord" style="padding:10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+            <select id="newInactive" style="padding:10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+              <option value="não">Ativo</option><option value="sim">Inativo</option><option value="parcial">Parcial</option>
+            </select>
+            <input type="number" id="newParticipation" placeholder="Participação (0-10)" min="0" max="10" value="0" style="padding:10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);outline:none;">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addPlayer()"><i class="fas fa-plus"></i> Adicionar Jogador</button>
+        </div>
+        <div class="table-wrap">
+          <table class="styled-table">
+            <thead><tr><th>Nome</th><th>Poder</th><th>Discord</th><th>Status</th><th>Participação</th><th class="admin-col" style="display:none;">Ações</th></tr></thead>
+            <tbody id="playersBody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:30px;">Carregando jogadores...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROMOÇÃO -->
+    <div class="page" id="page-promocao">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-user-plus"></i> Gerador de Promoção</div>
+        <div class="promo-grid">
+          <div class="input-group"><label>Responsável</label><input type="text" id="promoResp" placeholder="ADM/Mod responsável"></div>
+          <div class="input-group"><label>Promovido</label><input type="text" id="promoInd" placeholder="Nick do promovido" list="playerSuggestions"><datalist id="playerSuggestions"></datalist></div>
+          <div class="input-group"><label>Patente Antiga</label><input type="text" id="promoOld" placeholder="Ex: [Tg-Elite] Tigre de Elite" list="rankList"></div>
+          <div class="input-group"><label>Patente Nova</label><input type="text" id="promoNew" placeholder="Ex: [3° Class] Tigre de 3ª Classe" list="rankList"></div>
+        </div>
+        <datalist id="rankList">
+          <option value="[ALT-COM] Alto-Comando"><option value="[OF] Oficiais"><option value="[GD] Graduados"><option value="[PR] Praças"><option value="[Tg-Elite] Tigre de Elite"><option value="[3° Class] Tigre de Terceira Classe">
+        </datalist>
+        <div class="input-group"><label>Motivo</label><textarea id="promoMotivo" style="resize:vertical;min-height:60px;">capacitação de patente concluída.</textarea></div>
+        <div class="flex-row" style="margin:14px 0;">
+          <button class="btn btn-primary btn-sm" onclick="generatePromo()"><i class="fas fa-wand-magic-sparkles"></i> Gerar</button>
+          <button class="btn btn-secondary btn-sm" onclick="copyPromo()"><i class="fas fa-copy"></i> Copiar</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearPromo()"><i class="fas fa-eraser"></i> Limpar</button>
+        </div>
+        <textarea class="promo-output" id="promoOutput" readonly placeholder="A promoção aparecerá aqui..."></textarea>
+      </div>
+    </div>
+
+    <!-- SISTEMA -->
+    <div class="page" id="page-sistema">
+      <div class="panel">
+        <div class="panel-title"><i class="fas fa-gear"></i> Sistema</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
+          <div class="stat-card"><div class="stat-label">Espaço usado</div><div class="stat-value" id="storageSize" style="font-size:18px;">0 KB</div></div>
+          <div class="stat-card"><div class="stat-label">Última atualização</div><div class="stat-value" id="lastUpdate" style="font-size:16px;">Nunca</div></div>
+          <div class="stat-card">
+            <div class="stat-label">Compartilhamento</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+              <button class="btn btn-secondary btn-sm" onclick="exportFullData()"><i class="fas fa-file-export"></i> Exportar</button>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('importFileInput').click()"><i class="fas fa-file-import"></i> Importar</button>
+              <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importFullData(event)">
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Código de Compartilhamento</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+              <button class="btn btn-secondary btn-sm" onclick="copyShareCode()"><i class="fas fa-copy"></i> Copiar</button>
+              <button class="btn btn-secondary btn-sm" onclick="importShareCode()"><i class="fas fa-file-import"></i> Importar</button>
+            </div>
+            <textarea id="shareCodeInput" placeholder="Cole o código Base64 aqui..." style="margin-top:8px;width:100%;padding:8px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:12px;resize:vertical;min-height:60px;"></textarea>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Backup</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+              <button class="btn btn-secondary btn-sm" onclick="exportBackup()"><i class="fas fa-download"></i> Exportar</button>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('restoreBackupInput').click()"><i class="fas fa-upload"></i> Restaurar</button>
+              <input type="file" id="restoreBackupInput" accept=".json" style="display:none" onchange="restoreBackup(event)">
+            </div>
+          </div>
+          <div class="stat-card admin-only" style="display:none;">
+            <div class="stat-label">Gerenciamento</div>
+            <button class="btn btn-danger btn-sm" onclick="clearAllStorage()" style="margin-top:8px;"><i class="fas fa-trash"></i> Limpar LocalStorage</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="page" id="page-admin">
+      <div class="admin-header">
+        <i class="fas fa-shield-halved"></i>
+        <div>
+          <h2>Painel Administrativo</h2>
+          <p>Acesso exclusivo · Usuário: <strong id="adminUserLabel">CoA</strong></p>
+        </div>
+      </div>
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="switchAdminTab('users')"><i class="fas fa-users"></i> Usuários</button>
+        <button class="admin-tab" onclick="switchAdminTab('players')"><i class="fas fa-sword"></i> Jogadores</button>
+        <button class="admin-tab" onclick="switchAdminTab('items')"><i class="fas fa-box"></i> Itens</button>
+        <button class="admin-tab" onclick="switchAdminTab('json')"><i class="fas fa-file-code"></i> Import JSON</button>
+      </div>
+
+      <!-- USERS TAB -->
+      <div class="admin-section active" id="adminTab-users">
+        <div class="panel">
+          <div class="panel-title"><i class="fas fa-users-gear"></i> Gerenciar Usuários</div>
+          <div class="users-grid" id="usersGrid"><p style="color:var(--text-muted);">Carregando...</p></div>
+        </div>
+      </div>
+
+      <!-- PLAYERS TAB (admin) -->
+      <div class="admin-section" id="adminTab-players">
+        <div class="panel">
+          <div class="panel-title"><i class="fas fa-users"></i> Jogadores no Firebase</div>
+          <div style="margin-bottom:14px;">
+            <button class="btn btn-primary btn-sm" onclick="openAddPlayerModal()"><i class="fas fa-plus"></i> Novo Jogador</button>
+          </div>
+          <div class="table-wrap">
+            <table class="styled-table">
+              <thead><tr><th>Nome</th><th>Poder</th><th>Status</th><th>Participação</th><th>Ações</th></tr></thead>
+              <tbody id="adminPlayersBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEMS TAB -->
+      <div class="admin-section" id="adminTab-items">
+        <div class="panel">
+          <div class="panel-title"><i class="fas fa-box"></i> Valores dos Itens</div>
+          <div class="search-wrap items-search" style="margin-bottom:14px;">
+            <i class="fas fa-search"></i>
+            <input type="text" id="itemSearchAdmin" placeholder="Filtrar item..." oninput="filterAdminItems()" style="width:100%;padding:10px 12px 10px 36px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none;">
+          </div>
+          <div id="adminItemsContainer" style="max-height:500px;overflow-y:auto;"></div>
+          <div style="margin-top:16px;display:flex;gap:10px;">
+            <button class="btn btn-primary btn-sm" onclick="saveAllItems()"><i class="fas fa-save"></i> Salvar Alterações</button>
+            <button class="btn btn-secondary btn-sm" onclick="resetAllItems()"><i class="fas fa-undo"></i> Restaurar Padrão</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- JSON TAB -->
+      <div class="admin-section" id="adminTab-json">
+        <div class="panel">
+          <div class="panel-title"><i class="fas fa-file-code"></i> Importar Jogadores via JSON</div>
+          <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">
+            Cole ou edite um JSON com a lista de jogadores. O sistema irá sobrescrever os dados no Firebase.
+          </p>
+          <div style="margin-bottom:12px;padding:12px;background:var(--bg-primary);border-radius:var(--radius-sm);border:1px solid var(--border-color);">
+            <p style="font-size:11px;color:var(--neon-purple);margin-bottom:6px;letter-spacing:1px;">FORMATO ESPERADO:</p>
+            <pre style="font-size:11px;color:var(--text-muted);white-space:pre-wrap;">[
+  {
+    "name": "NomeJogador",
+    "power": "5.2M",
+    "discord": "",
+    "inactive": "não",
+    "participation": 0
+  }
+]</pre>
+          </div>
+          <textarea id="jsonInput" style="width:100%;min-height:300px;padding:14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:12px;resize:vertical;outline:none;transition:all var(--transition);" placeholder="Cole o JSON aqui..."></textarea>
+          <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="importPlayersFromJSON()"><i class="fas fa-upload"></i> Enviar ao Firebase</button>
+            <button class="btn btn-secondary" onclick="loadCurrentPlayersToJSON()"><i class="fas fa-download"></i> Carregar Atual</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('jsonFile').click()"><i class="fas fa-file-import"></i> Importar Arquivo</button>
+            <input type="file" id="jsonFile" accept=".json" style="display:none" onchange="loadJSONFile(event)">
+          </div>
+          <div id="jsonStatus" style="margin-top:10px;font-size:13px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== MODAL (jogador) ===== -->
+<div class="modal-overlay" id="playerModal">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fas fa-user-edit"></i> <span id="playerModalTitle">Editar Jogador</span></div>
+    <input type="hidden" id="editPlayerId">
+    <div class="input-group"><label>Nome</label><input type="text" id="editName" placeholder="Nome do jogador"></div>
+    <div class="input-group"><label>Poder</label><input type="text" id="editPower" placeholder="Ex: 5.2M"></div>
+    <div class="input-group"><label>Discord</label><input type="text" id="editDiscord" placeholder="Link ou user Discord"></div>
+    <div class="input-group"><label>Status</label>
+      <select id="editInactive">
+        <option value="não">Ativo</option><option value="sim">Inativo</option><option value="parcial">Parcial</option>
+      </select>
+    </div>
+    <div class="input-group"><label>Participação (0-10)</label><input type="number" id="editParticipation" min="0" max="10" value="0"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('playerModal')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="savePlayer()"><i class="fas fa-save"></i> Salvar</button>
+    </div>
   </div>
+</div>
 
-  <!-- ===== TOAST ===== -->
-  <div class="toast-container" id="toastContainer"></div>
+<!-- ===== TOAST ===== -->
+<div class="toast-container" id="toastContainer"></div>
 
-  <!-- ============================================================= -->
-  <!-- JAVASCRIPT – TUDO EM UM ÚNICO BLOCO (sem módulos)            -->
-  <!-- ============================================================= -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"></script>
+<!-- ============================================================= -->
+<!--  FIREBASE MODULE                                              -->
+<!-- ============================================================= -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, get, set, push, remove, onValue, child }
+    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  <script>
-    // ====================================================================
-    // 1. CONFIGURAÇÃO FIREBASE
-    // ====================================================================
-    const firebaseConfig = {
-      databaseURL: "https://sisteam-coa-default-rtdb.firebaseio.com/"
+  // ── COLE AQUI O SEU firebaseConfig COMPLETO ──────────────────────────
+  const firebaseConfig = {
+    apiKey: "COLE_SUA_API_KEY",
+    authDomain: "COLE_SEU_AUTH_DOMAIN",
+    databaseURL: "https://sisteam-coa-default-rtdb.firebaseio.com/",
+    projectId: "COLE_SEU_PROJECT_ID",
+    storageBucket: "COLE_SEU_STORAGE_BUCKET",
+    messagingSenderId: "COLE_SEU_MESSAGING_SENDER_ID",
+    appId: "COLE_SEU_APP_ID"
+  };
+  // ─────────────────────────────────────────────────────────────────────
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  // ── ADMIN MASTER ──────────────────────────────────────────────────────
+  const MASTER_ADMIN = 'CoA';
+
+  // ── EXPÕE DB E HELPERS GLOBALMENTE ───────────────────────────────────
+  window._db = db;
+  window._ref = ref;
+  window._get = get;
+  window._set = set;
+  window._push = push;
+  window._remove = remove;
+  window._onValue = onValue;
+  window._child = child;
+  window.MASTER_ADMIN = MASTER_ADMIN;
+
+  // ── LOGIN ─────────────────────────────────────────────────────────────
+  window.fbLogin = async function(user, pass) {
+    const snap = await get(child(ref(db), 'registros'));
+    if (!snap.exists()) throw new Error('Nenhum usuário cadastrado.');
+    const registros = snap.val();
+    for (const key of Object.keys(registros)) {
+      const r = registros[key];
+      if (r.usuario === user && r.senha === pass) {
+        return { key, ...r };
+      }
+    }
+    throw new Error('Usuário ou senha incorretos.');
+  };
+
+  // ── CADASTRO ──────────────────────────────────────────────────────────
+  window.fbRegister = async function(user, pass) {
+    const snap = await get(child(ref(db), 'registros'));
+    if (snap.exists()) {
+      const registros = snap.val();
+      const exists = Object.values(registros).some(r => r.usuario === user);
+      if (exists) throw new Error('Este nome de usuário já existe.');
+    }
+    const newRef = push(ref(db, 'registros'));
+    await set(newRef, { usuario: user, senha: pass, tipo: 'usuario', timestamp: new Date().toISOString() });
+    return { key: newRef.key, usuario: user, tipo: 'usuario' };
+  };
+
+  // ── JOGADORES ─────────────────────────────────────────────────────────
+  window.fbLoadPlayers = async function() {
+    const snap = await get(child(ref(db), 'jogadores'));
+    if (!snap.exists()) return [];
+    const val = snap.val();
+    if (Array.isArray(val)) return val.map((p,i) => ({ _key: String(i), ...p }));
+    return Object.entries(val).map(([k,v]) => ({ _key: k, ...v }));
+  };
+
+  window.fbSavePlayers = async function(arr) {
+    const obj = {};
+    arr.forEach((p, i) => { obj[i] = p; });
+    await set(ref(db, 'jogadores'), obj);
+  };
+
+  window.fbAddPlayer = async function(player) {
+    const newRef = push(ref(db, 'jogadores'));
+    await set(newRef, player);
+    return newRef.key;
+  };
+
+  window.fbUpdatePlayer = async function(key, player) {
+    await set(ref(db, 'jogadores/' + key), player);
+  };
+
+  window.fbDeletePlayer = async function(key) {
+    await remove(ref(db, 'jogadores/' + key));
+  };
+
+  // ── ITENS ─────────────────────────────────────────────────────────────
+  window.fbLoadItems = async function() {
+    const snap = await get(child(ref(db), 'itens'));
+    if (!snap.exists()) return null;
+    const val = snap.val();
+    return Array.isArray(val) ? val : Object.values(val);
+  };
+
+  window.fbSaveItems = async function(arr) {
+    await set(ref(db, 'itens'), arr);
+  };
+
+  // ── USUÁRIOS (admin) ──────────────────────────────────────────────────
+  window.fbLoadUsers = async function() {
+    const snap = await get(child(ref(db), 'registros'));
+    if (!snap.exists()) return [];
+    return Object.entries(snap.val()).map(([k,v]) => ({ _key: k, ...v }));
+  };
+
+  window.fbUpdateUserType = async function(key, tipo) {
+    await set(ref(db, 'registros/' + key + '/tipo'), tipo);
+  };
+
+  window.fbDeleteUser = async function(key) {
+    await remove(ref(db, 'registros/' + key));
+  };
+
+  // ── SINALIZA PRONTO ───────────────────────────────────────────────────
+  window._firebaseReady = true;
+  document.dispatchEvent(new Event('firebaseReady'));
+</script>
+
+<!-- ============================================================= -->
+<!--  APP PRINCIPAL                                                 -->
+<!-- ============================================================= -->
+<script>
+  // ── ESTADO ───────────────────────────────────────────────────────────
+  let currentUser = null;
+  let isAdmin = false;
+  let allPlayers = [];    // { _key, name, power, discord, inactive, participation }
+  let allItems   = [];    // { name, value, demand }
+  let tradeL = [];
+  let tradeR = [];
+
+  const DEFAULT_ITEMS = [
+    { name: 'Sayen Drip V', value: 180, demand: 'Medium-High' },
+    { name: 'Sayen Drip IV', value: 30, demand: 'Low' },
+    { name: 'Sayen Drip III', value: 5, demand: 'Very Low' },
+    { name: 'Iron Fist V', value: 15, demand: 'Low' },
+    { name: 'Health Regen V', value: 15, demand: 'Low' },
+    { name: 'Critical Strike V', value: 10, demand: 'Very Low' },
+    { name: 'Zenkai Perma Stone', value: 40, demand: 'Medium' },
+    { name: 'Legendary Perma Stone', value: 15, demand: 'Low' },
+    { name: 'Epic Perma Stone', value: 10, demand: 'Very Low' },
+    { name: 'Halloween 2023 Aura', value: 4000, demand: 'Low' },
+    { name: 'Frost SSJ4', value: 2580, demand: 'Medium' },
+    { name: 'Shadow SSJ4', value: 1200, demand: 'High-Very High' },
+    { name: 'Festive Aura', value: 415, demand: 'Very Low-Low' },
+    { name: 'Headless Aura', value: 250, demand: 'Low-Medium' },
+    { name: 'Halloween 2024 Aura', value: 190, demand: 'Medium-High' },
+    { name: 'Ultra Instinkt', value: 145, demand: 'Very Low-Low' },
+    { name: 'Easter Aura', value: 70, demand: 'Very Low-Low' },
+    { name: 'Super Sayen BLUE Aura (OG)', value: 50, demand: 'Medium-High' },
+    { name: 'Super Sayen GOD Aura (OG)', value: 40, demand: 'Medium-High' },
+    { name: 'Halloween 2025 Aura', value: 30, demand: 'Low' },
+    { name: 'Super Sayen Rose Aura (OG)', value: 30, demand: 'Medium-High' },
+    { name: 'Lovebound Aura', value: 20, demand: 'Very Low' },
+    { name: 'LSSJ Aura (OG)', value: 20, demand: 'Low-Medium' },
+    { name: 'Mystic Aura (OG)', value: 20, demand: 'Low-Medium' },
+    { name: 'Brasil Latina Aura', value: 15, demand: 'Very Low' },
+    { name: 'Paschal Aura', value: 15, demand: 'Very Low' },
+    { name: 'Winter Spirit Aura', value: 12, demand: 'Very Low' },
+    { name: 'Blue Ice Aura', value: 12, demand: 'Very Low' },
+    { name: 'Borealis Aura', value: 7, demand: 'Very Low' },
+    { name: 'SnowStorm Aura', value: 7, demand: 'Very Low' },
+    { name: 'DS Jacket', value: 30, demand: 'Low' },
+  ];
+
+  // ── UTILIDADES ────────────────────────────────────────────────────────
+  function showToast(msg, type = 'info') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : 'fa-info-circle'}"></i>${msg}`;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+  function navigateTo(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => {
+      n.classList.toggle('active', n.dataset.page === page);
+    });
+    const titles = { dashboard: ['📊 Dashboard','Visão geral'], calculadora: ['🧮 Calculadora','Troca de itens'], jogadores: ['👥 Jogadores','Lista do clã'], promocao: ['⭐ Promoção','Gerador de mensagem'], sistema: ['⚙️ Sistema','Configurações'], admin: ['🛡️ Admin','Painel administrativo'] };
+    const t = titles[page] || [page, ''];
+    document.getElementById('pageTitle').textContent = t[0];
+    document.getElementById('pageSub').textContent = t[1];
+  }
+
+  // ── SIDEBAR ───────────────────────────────────────────────────────────
+  document.getElementById('sidebarToggle').addEventListener('click', () => {
+    const s = document.getElementById('sidebar');
+    const m = document.getElementById('mainContent');
+    s.classList.toggle('expanded');
+    m.classList.toggle('expanded');
+    const icon = document.getElementById('toggleIcon');
+    icon.className = s.classList.contains('expanded') ? 'fas fa-chevron-left' : 'fas fa-chevron-right';
+  });
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.addEventListener('click', () => navigateTo(n.dataset.page));
+  });
+
+  // ── LOGIN / REGISTER ──────────────────────────────────────────────────
+  let loginMode = 'login';
+  window.switchTab = function(mode) {
+    loginMode = mode;
+    document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+    document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+    document.getElementById('loginBtnText').textContent = mode === 'login' ? 'Entrar' : 'Cadastrar';
+    document.getElementById('loginError').textContent = '';
+  };
+
+  document.addEventListener('firebaseReady', () => {
+    document.getElementById('loadingOverlay').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+  });
+
+  // Fallback se Firebase demorar
+  setTimeout(() => {
+    if (!window._firebaseReady) {
+      document.getElementById('loadingOverlay').innerHTML = '<div style="color:#F87171;text-align:center;padding:20px;"><i class="fas fa-exclamation-triangle" style="font-size:40px;margin-bottom:16px;display:block;"></i><strong>Erro ao conectar ao Firebase</strong><br><span style="font-size:13px;color:#666;">Verifique o firebaseConfig no código</span></div>';
+    }
+  }, 8000);
+
+  document.getElementById('loginBtn').addEventListener('click', handleAuth);
+  document.getElementById('password').addEventListener('keypress', e => { if (e.key === 'Enter') handleAuth(); });
+
+  async function handleAuth() {
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+    const errDiv = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+
+    if (!user || !pass) { errDiv.textContent = 'Preencha usuário e senha.'; return; }
+    btn.disabled = true;
+    errDiv.textContent = loginMode === 'login' ? 'Verificando...' : 'Cadastrando...';
+
+    try {
+      let userData;
+      if (loginMode === 'login') {
+        userData = await window.fbLogin(user, pass);
+      } else {
+        userData = await window.fbRegister(user, pass);
+      }
+      await startApp(userData);
+    } catch (e) {
+      errDiv.textContent = e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ── INICIAR APP ───────────────────────────────────────────────────────
+  async function startApp(userData) {
+    currentUser = userData.usuario;
+    isAdmin = (currentUser === window.MASTER_ADMIN) || userData.tipo === 'admin';
+    window.isAdmin = isAdmin;
+
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appContainer').style.display = 'flex';
+
+    // Exibe usuário
+    const badge = isAdmin
+      ? `<strong>${currentUser}</strong><span class="admin-badge">ADMIN</span>`
+      : `<strong>${currentUser}</strong>`;
+    document.getElementById('userDisplay').innerHTML = 'Jogador: ' + badge;
+    if (isAdmin) document.getElementById('adminUserLabel').textContent = currentUser;
+
+    // Mostra/oculta nav admin
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
+    document.querySelectorAll('.admin-col').forEach(el => el.style.display = isAdmin ? '' : 'none');
+    document.getElementById('addPlayerArea').style.display = isAdmin ? 'block' : 'none';
+
+    // Carrega dados
+    await loadAllData();
+    updateDashboard();
+    // Carrega usuários se admin
+    if (isAdmin) loadAdminUsers();
+  }
+
+  async function loadAllData() {
+    try {
+      const [itemsData, playersData] = await Promise.all([
+        window.fbLoadItems(),
+        window.fbLoadPlayers()
+      ]);
+
+      allItems = itemsData && itemsData.length ? itemsData : DEFAULT_ITEMS.map(i => ({ ...i }));
+      allPlayers = playersData || [];
+
+      populateTradeSelects();
+      renderPlayers();
+      renderPlayerSuggestions();
+      if (isAdmin) {
+        renderAdminItems();
+        renderAdminPlayers();
+      }
+    } catch (e) {
+      showToast('Erro ao carregar dados do Firebase', 'error');
+      console.error(e);
+    }
+  }
+
+  function updateDashboard() {
+    document.getElementById('statPlayers').textContent = allPlayers.length;
+    document.getElementById('statItems').textContent = allItems.length;
+    // Conta usuários se admin
+    if (isAdmin) {
+      window.fbLoadUsers().then(u => {
+        document.getElementById('statUsers').textContent = u.length;
+      }).catch(() => {});
+    } else {
+      document.getElementById('statUsers').textContent = '—';
+    }
+    // Atualiza sistema
+    const now = new Date().toLocaleString();
+    document.getElementById('lastUpdate').textContent = now;
+    const size = new Blob([JSON.stringify(localStorage)]).size;
+    document.getElementById('storageSize').textContent = (size / 1024).toFixed(1) + ' KB';
+  }
+
+  window.logout = function() {
+    currentUser = null; isAdmin = false;
+    allPlayers = []; allItems = []; tradeL = []; tradeR = [];
+    document.getElementById('appContainer').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('loginError').textContent = '';
+  };
+
+  // ── JOGADORES ─────────────────────────────────────────────────────────
+  function renderPlayers() {
+    const tbody = document.getElementById('playersBody');
+    tbody.innerHTML = '';
+    if (!allPlayers.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:30px;">Nenhum jogador cadastrado.</td></tr>';
+      return;
+    }
+    allPlayers.forEach(p => {
+      const tr = document.createElement('tr');
+      const statusClass = p.inactive === 'sim' ? 'status-inactive' : p.inactive === 'parcial' ? 'status-partial' : 'status-active';
+      const statusText  = p.inactive === 'sim' ? 'Inativo' : p.inactive === 'parcial' ? 'Parcial' : 'Ativo';
+      tr.innerHTML = `
+        <td><strong>${p.name}</strong></td>
+        <td class="power-cell">${p.power}</td>
+        <td>${p.discord ? `<a href="${p.discord}" target="_blank" class="discord-link"><i class="fab fa-discord"></i> Discord</a>` : '—'}</td>
+        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+        <td>${p.participation ?? 0}/10</td>
+        <td class="admin-col" style="display:${isAdmin?'':'none'}">
+          <button class="btn btn-secondary btn-sm" onclick="openEditPlayerModal('${p._key}')"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deletePlayerFromTable('${p._key}')"><i class="fas fa-trash"></i></button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  window.addPlayer = async function() {
+    const name = document.getElementById('newName').value.trim();
+    const power = document.getElementById('newPower').value.trim();
+    const discord = document.getElementById('newDiscord').value.trim();
+    const inactive = document.getElementById('newInactive').value;
+    const participation = parseInt(document.getElementById('newParticipation').value) || 0;
+    if (!name || !power) { showToast('Nome e poder são obrigatórios.', 'error'); return; }
+    try {
+      const key = await window.fbAddPlayer({ name, power, discord, inactive, participation });
+      allPlayers.push({ _key: key, name, power, discord, inactive, participation });
+      renderPlayers();
+      renderPlayerSuggestions();
+      document.getElementById('newName').value = '';
+      document.getElementById('newPower').value = '';
+      document.getElementById('newDiscord').value = '';
+      showToast('Jogador adicionado!', 'success');
+      updateDashboard();
+    } catch (e) { showToast('Erro ao adicionar jogador.', 'error'); }
+  };
+
+  window.deletePlayerFromTable = async function(key) {
+    if (!confirm('Remover este jogador?')) return;
+    try {
+      await window.fbDeletePlayer(key);
+      allPlayers = allPlayers.filter(p => p._key !== key);
+      renderPlayers();
+      renderAdminPlayers();
+      updateDashboard();
+      showToast('Jogador removido.', 'success');
+    } catch (e) { showToast('Erro ao remover jogador.', 'error'); }
+  };
+
+  // ── ADMIN PLAYERS ─────────────────────────────────────────────────────
+  function renderAdminPlayers() {
+    const tbody = document.getElementById('adminPlayersBody');
+    tbody.innerHTML = '';
+    allPlayers.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${p.name}</strong></td>
+        <td class="power-cell">${p.power}</td>
+        <td>${p.inactive === 'sim' ? '🔴 Inativo' : p.inactive === 'parcial' ? '🟡 Parcial' : '🟢 Ativo'}</td>
+        <td>${p.participation ?? 0}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm" onclick="openEditPlayerModal('${p._key}')"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deletePlayerFromTable('${p._key}')"><i class="fas fa-trash"></i></button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  window.openAddPlayerModal = function() {
+    document.getElementById('playerModalTitle').textContent = 'Novo Jogador';
+    document.getElementById('editPlayerId').value = '';
+    document.getElementById('editName').value = '';
+    document.getElementById('editPower').value = '';
+    document.getElementById('editDiscord').value = '';
+    document.getElementById('editInactive').value = 'não';
+    document.getElementById('editParticipation').value = '0';
+    document.getElementById('playerModal').classList.add('active');
+  };
+
+  window.openEditPlayerModal = function(key) {
+    const p = allPlayers.find(x => x._key === key);
+    if (!p) return;
+    document.getElementById('playerModalTitle').textContent = 'Editar Jogador';
+    document.getElementById('editPlayerId').value = key;
+    document.getElementById('editName').value = p.name;
+    document.getElementById('editPower').value = p.power;
+    document.getElementById('editDiscord').value = p.discord || '';
+    document.getElementById('editInactive').value = p.inactive || 'não';
+    document.getElementById('editParticipation').value = p.participation ?? 0;
+    document.getElementById('playerModal').classList.add('active');
+  };
+
+  window.savePlayer = async function() {
+    const key  = document.getElementById('editPlayerId').value;
+    const name = document.getElementById('editName').value.trim();
+    const power = document.getElementById('editPower').value.trim();
+    const discord = document.getElementById('editDiscord').value.trim();
+    const inactive = document.getElementById('editInactive').value;
+    const participation = parseInt(document.getElementById('editParticipation').value) || 0;
+    if (!name || !power) { showToast('Nome e poder são obrigatórios.', 'error'); return; }
+
+    const playerObj = { name, power, discord, inactive, participation };
+    try {
+      if (key) {
+        await window.fbUpdatePlayer(key, playerObj);
+        const idx = allPlayers.findIndex(p => p._key === key);
+        if (idx >= 0) allPlayers[idx] = { _key: key, ...playerObj };
+        showToast('Jogador atualizado!', 'success');
+      } else {
+        const newKey = await window.fbAddPlayer(playerObj);
+        allPlayers.push({ _key: newKey, ...playerObj });
+        showToast('Jogador adicionado!', 'success');
+      }
+      closeModal('playerModal');
+      renderPlayers();
+      renderAdminPlayers();
+      renderPlayerSuggestions();
+      updateDashboard();
+    } catch (e) { showToast('Erro ao salvar jogador.', 'error'); }
+  };
+
+  // ── JSON IMPORT ───────────────────────────────────────────────────────
+  window.importPlayersFromJSON = async function() {
+    const raw = document.getElementById('jsonInput').value.trim();
+    const statusEl = document.getElementById('jsonStatus');
+    if (!raw) { statusEl.innerHTML = '<span style="color:#F87171;">Nenhum JSON inserido.</span>'; return; }
+    let data;
+    try {
+      data = JSON.parse(raw);
+      if (!Array.isArray(data)) throw new Error('O JSON deve ser um array.');
+    } catch (e) {
+      statusEl.innerHTML = `<span style="color:#F87171;">JSON inválido: ${e.message}</span>`;
+      return;
+    }
+    const valid = data.every(p => p.name && p.power);
+    if (!valid) { statusEl.innerHTML = '<span style="color:#F87171;">Cada item deve ter pelo menos "name" e "power".</span>'; return; }
+
+    statusEl.innerHTML = '<span style="color:#FBD24D;">Enviando ao Firebase...</span>';
+    try {
+      const normalized = data.map(p => ({
+        name: p.name || '',
+        power: p.power || '',
+        discord: p.discord || '',
+        inactive: p.inactive || 'não',
+        participation: parseInt(p.participation) || 0
+      }));
+      await window.fbSavePlayers(normalized);
+      allPlayers = await window.fbLoadPlayers();
+      renderPlayers();
+      renderAdminPlayers();
+      renderPlayerSuggestions();
+      updateDashboard();
+      statusEl.innerHTML = `<span style="color:#34D399;"><i class="fas fa-check-circle"></i> ${normalized.length} jogadores enviados com sucesso!</span>`;
+      showToast(`${normalized.length} jogadores importados!`, 'success');
+    } catch (e) {
+      statusEl.innerHTML = `<span style="color:#F87171;">Erro ao salvar no Firebase: ${e.message}</span>`;
+    }
+  };
+
+  window.loadCurrentPlayersToJSON = function() {
+    const clean = allPlayers.map(({ _key, ...rest }) => rest);
+    document.getElementById('jsonInput').value = JSON.stringify(clean, null, 2);
+    document.getElementById('jsonStatus').innerHTML = '<span style="color:#A78BFA;">Dados atuais carregados no editor.</span>';
+  };
+
+  window.loadJSONFile = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('jsonInput').value = e.target.result;
+      document.getElementById('jsonStatus').innerHTML = '<span style="color:#A78BFA;">Arquivo carregado. Clique em "Enviar ao Firebase" para confirmar.</span>';
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    reader.readAsText(file);
+    event.target.value = '';
+  };
 
-    // ====================================================================
-    // 2. DADOS PADRÃO (ITENS) – usados para reset e fallback
-    // ====================================================================
-    const DEFAULT_ITEMS = [
-      { name: 'Sayen Drip V', value: 180, demand: 'Medium-High' },
-      { name: 'Sayen Drip IV', value: 30, demand: 'Low' },
-      { name: 'Sayen Drip III', value: 5, demand: 'Very Low' },
-      { name: 'Sayen Drip II', value: 1, demand: 'Very Low' },
-      { name: 'Sayen Drip I', value: 1, demand: 'Very Low' },
-      { name: 'Iron Fist V', value: 15, demand: 'Low' },
-      { name: 'Health Regen V', value: 15, demand: 'Low' },
-      { name: 'Critical Strike V', value: 10, demand: 'Very Low' },
-      { name: 'Critical Damage V', value: 5, demand: 'Very Low' },
-      { name: 'Enchant Remover', value: 1, demand: 'Very Low' },
-      { name: 'Zenkai Perma Stone ', value: 40, demand: 'Medium' },
-      { name: 'Legendary Perma Stone', value: 15, demand: 'Low' },
-      { name: 'Epic Perma Stone', value: 10, demand: 'Very Low' },
-      { name: 'Rare Perma Stone', value: 5, demand: 'Very Low' },
-      { name: 'Uncommon Perma Stone', value: 3, demand: 'Very Low' },
-      { name: '1 Hour Zeni Boost', value: 1, demand: 'Very Low' },
-      { name: '1 Hour Mastery Boost', value: 1, demand: 'Very Low' },
-      { name: '1 Hour XP Boost', value: 1, demand: 'Very Low' },
-      { name: 'Great Ape Form', value: 260, demand: 'Very Low-Low' },
-      { name: 'Boku Black Bundle', value: 80, demand: 'Very Low-Low' },
-      { name: 'Brolo Bundle', value: 30, demand: 'Very Low-Low' },
-      { name: 'Brave Bundle', value: 25, demand: 'Very Low-Low' },
-      { name: 'Gogota Bundle', value: 20, demand: 'Very Low-Low' },
-      { name: 'Time Chamber', value: 15, demand: 'Very Low' },
-      { name: 'Demon Mark', value: 10, demand: 'Very Low' },
-      { name: 'Instant Transmission', value: 10, demand: 'Very Low' },
-      { name: 'Soul Vanity', value: 10, demand: 'Very Low' },
-      { name: 'Dragon Radar', value: 10, demand: 'Very Low' },
-      { name: 'Drip', value: 7, demand: 'Very Low' },
-      { name: 'x1.25 Drops Luck', value: 7, demand: 'Very Low' },
-      { name: 'Nimbus', value: 5, demand: 'Very Low' },
-      { name: 'Custom Color Picker', value: 5, demand: 'Very Low' },
-      { name: 'Fast Travel', value: 5, demand: 'Very Low' },
-      { name: 'Chest Luck', value: 2, demand: 'Very Low' },
-      { name: 'Neon Catrin Mask', value: 2300, demand: 'Very Low-Low' },
-      { name: 'Bright Offering Mask', value: 1500, demand: 'Very Low-Low' },
-      { name: 'Light Tunnel Mask', value: 1380, demand: 'Very Low-Low' },
-      { name: 'Halloween Halo', value: 500, demand: 'Very Low-Low' },
-      { name: 'Immortal Halo', value: 220, demand: 'Very Low-Low' },
-      { name: 'Witch Hat (2023)', value: 160, demand: 'Very Low' },
-      { name: 'Witch Hat (2024)', value: 120, demand: 'Very Low' },
-      { name: 'Brolo Earrings', value: 80, demand: 'Very Low' },
-      { name: 'White Pumpkin Head', value: 65, demand: 'Very Low' },
-      { name: 'Troll Mask', value: 60, demand: 'Very Low' },
-      { name: 'Beowulf Gloves', value: 20, demand: 'Low' },
-      { name: 'Spider Earrings', value: 20, demand: 'Very Low' },
-      { name: "Healer's Necklace", value: 20, demand: 'Very Low' },
-      { name: 'The Coolest Propeller ', value: 20, demand: 'Very Low' },
-      { name: 'Eye Patch', value: 15, demand: 'Very Low' },
-      { name: 'Fisherman Hat', value: 15, demand: 'Very Low' },
-      { name: 'Squid Hat', value: 15, demand: 'Very Low' },
-      { name: 'Opa Man Cape', value: 10, demand: 'Very Low' },
-      { name: 'Evil Org Cape', value: 10, demand: 'Very Low' },
-      { name: '18 Earrings', value: 10, demand: 'Very Low' },
-      { name: 'Brolo Pendant', value: 7, demand: 'Very Low' },
-      { name: 'Pumpkin Glasses', value: 7, demand: 'Very Low' },
-      { name: 'Hockey Mask', value: 7, demand: 'Very Low' },
-      { name: 'Undead Venus', value: 5, demand: 'Very Low' },
-      { name: 'Pumpkin Head', value: 5, demand: 'Very Low' },
-      { name: 'Pumpkin Tamma', value: 3, demand: 'None-Very Low' },
-      { name: 'Brolo Crown', value: 3, demand: 'Very Low' },
-      { name: 'Pumpkin Buddies', value: 3, demand: 'None-Very Low' },
-      { name: 'Crow', value: 3, demand: 'None-Very Low' },
-      { name: 'Rotten Hockey Mask', value: 3, demand: 'None-Very Low' },
-      { name: 'Catrin Dorado Set', value: 4000, demand: 'Very Low-Low' },
-      { name: 'Hat', value: 1000, demand: 'Very Low-Low' },
-      { name: 'Shirt', value: 1000, demand: 'Very Low-Low' },
-      { name: 'Pants', value: 1000, demand: 'Very Low-Low' },
-      { name: 'Shoes', value: 1000, demand: 'Very Low-Low' },
-      { name: 'Santa Set (2023)', value: 720, demand: 'Very Low' },
-      { name: 'Hat', value: 675, demand: 'Very Low' },
-      { name: 'Shirt', value: 20, demand: 'Very Low' },
-      { name: 'Pants', value: 15, demand: 'Very Low' },
-      { name: 'Shoes', value: 10, demand: 'Very Low' },
-      { name: 'Xeno Boku Set', value: 700, demand: 'Medium' },
-      { name: 'Bandana', value: 65, demand: 'Medium' },
-      { name: 'Shirt', value: 495, demand: 'Medium' },
-      { name: 'Pants', value: 88, demand: 'Medium' },
-      { name: 'Shoes', value: 55, demand: 'Medium' },
-      { name: 'Elf Set (2023)', value: 668, demand: 'Very Low' },
-      { name: 'Hat', value: 628, demand: 'Very Low-Low' },
-      { name: 'Shirt', value: 20, demand: 'Very Low' },
-      { name: 'Pants', value: 12, demand: 'Very Low' },
-      { name: 'Shoes', value: 8, demand: 'Very Low' },
-      { name: 'Black Catrin Set', value: 425, demand: 'Very Low' },
-      { name: 'Hat', value: 240, demand: 'Very Low' },
-      { name: 'Shirt', value: 70, demand: 'Very Low' },
-      { name: 'Pants', value: 65, demand: 'Very Low' },
-      { name: 'Shoes', value: 50, demand: 'Very Low' },
-      { name: 'Ringmaster Set', value: 160, demand: 'Very Low-Low' },
-      { name: 'Hat', value: 30, demand: 'Very Low-Low' },
-      { name: 'Shirt', value: 70, demand: 'Very Low-Low' },
-      { name: 'Pants', value: 45, demand: 'Very Low' },
-      { name: 'Shoes', value: 15, demand: 'Very Low' },
-      { name: 'Bunny Set', value: 95, demand: 'Very Low' },
-      { name: 'Headband', value: 25, demand: 'Very Low' },
-      { name: 'Shirt', value: 30, demand: 'Very Low' },
-      { name: 'Pants', value: 25, demand: 'Very Low' },
-      { name: 'Shoes', value: 15, demand: 'Very Low' },
-      { name: 'Lucre The Ascended Set (Full)', value: 40, demand: 'Very Low' },
-      { name: 'Shirt', value: 10, demand: 'Very Low' },
-      { name: 'Shirtless', value: 15, demand: 'Very Low' },
-      { name: 'Pants', value: 10, demand: 'Very Low' },
-      { name: 'Shoes', value: 5, demand: 'Very Low' },
-      { name: 'Winter Sweater (2023)', value: 35, demand: 'Very Low' },
-      { name: 'Rabbit Buttler Set', value: 32, demand: 'Very Low' },
-      { name: 'Hat ', value: 8, demand: 'Very Low' },
-      { name: 'Back', value: 8, demand: 'Very Low' },
-      { name: 'Dress', value: 8, demand: 'Very Low' },
-      { name: 'Pants ', value: 4, demand: 'Very Low' },
-      { name: 'Shoes', value: 4, demand: 'Very Low' },
-      { name: 'DS Jacket', value: 30, demand: 'Low' },
-      { name: 'Light Of Jolliness Set', value: 30, demand: 'Very Low' },
-      { name: 'Back', value: 20, demand: 'Very Low' },
-      { name: 'Shirt', value: 5, demand: 'Very Low' },
-      { name: 'Pants', value: 3, demand: 'Very Low' },
-      { name: 'Shoes', value: 2, demand: 'Very Low' },
-      { name: 'Dark Wizard Set', value: 30, demand: 'Very Low' },
-      { name: 'Hat', value: 5, demand: 'Very Low' },
-      { name: 'Face', value: 5, demand: 'Very Low' },
-      { name: 'Neck', value: 5, demand: 'Very Low' },
-      { name: 'Shirt', value: 5, demand: 'Very Low' },
-      { name: 'Pants', value: 5, demand: 'Very Low' },
-      { name: 'Shoes', value: 5, demand: 'Very Low' },
-      { name: 'Hunser Set', value: 25, demand: 'Very Low' },
-      { name: 'Hat ', value: 5, demand: 'Very Low' },
-      { name: 'Bucket', value: 2, demand: 'Very Low' },
-      { name: 'Shirt', value: 10, demand: 'Very Low' },
-      { name: 'Pants ', value: 5, demand: 'Very Low' },
-      { name: 'Shoes', value: 3, demand: 'Very Low' },
-      { name: 'Glacial Deity Set', value: 25, demand: 'Very Low' },
-      { name: 'Hair', value: 8, demand: 'Very Low' },
-      { name: 'Monocle', value: 5, demand: 'Very Low' },
-      { name: 'Shirt', value: 4, demand: 'Very Low' },
-      { name: 'Pants', value: 4, demand: 'Very Low' },
-      { name: 'Shoes', value: 4, demand: 'Very Low' },
-      { name: 'Fallen Christmas Reaper Set', value: 25, demand: 'Very Low' },
-      { name: 'Back', value: 8, demand: 'Very Low' },
-      { name: 'Head', value: 5, demand: 'Very Low' },
-      { name: 'Shirt', value: 4, demand: 'Very Low' },
-      { name: 'Pants', value: 4, demand: 'Very Low' },
-      { name: 'Shoes', value: 4, demand: 'Very Low' },
-      { name: 'Polar Owl Hunter Set', value: 25, demand: 'Very Low' },
-      { name: 'Head', value: 8, demand: 'Very Low' },
-      { name: 'Necklace', value: 5, demand: 'Very Low' },
-      { name: 'Shirt', value: 4, demand: 'Very Low' },
-      { name: 'Pants', value: 4, demand: 'Very Low' },
-      { name: 'Shoes', value: 4, demand: 'Very Low' },
-      { name: 'Dullahan Set', value: 21, demand: 'Very Low' },
-      { name: 'Shirt', value: 6, demand: 'Very Low' },
-      { name: 'Pants', value: 5, demand: 'Very Low' },
-      { name: 'Shoes', value: 5, demand: 'Very Low' },
-      { name: 'Malicious Goku Black Set', value: 20, demand: 'Very Low' },
-      { name: 'Mask', value: 6, demand: 'Very Low' },
-      { name: 'Shirt', value: 5, demand: 'Very Low' },
-      { name: 'Pants', value: 5, demand: 'Very Low' },
-      { name: 'Shoes', value: 4, demand: 'Very Low' },
-      { name: 'Justice Bunny Set', value: 20, demand: 'Very Low' },
-      { name: 'Helmet ', value: 4, demand: 'Very Low' },
-      { name: 'Cape', value: 8, demand: 'Very Low' },
-      { name: 'Shirt', value: 4, demand: 'Very Low' },
-      { name: 'Pants ', value: 4, demand: 'Very Low' },
-      { name: 'Shoes', value: 4, demand: 'Very Low' },
-      { name: 'Ninja Set', value: 20, demand: 'Very Low' },
-      { name: 'Shirt', value: 10, demand: 'Very Low' },
-      { name: 'Pants', value: 6, demand: 'Very Low' },
-      { name: 'Shoes', value: 4, demand: 'Very Low' },
-      { name: 'Fused Zama Set', value: 18, demand: 'Very Low' },
-      { name: 'Shirt', value: 12, demand: 'Very Low' },
-      { name: 'Pants', value: 8, demand: 'Very Low' },
-      { name: 'Shoes', value: 4, demand: 'Very Low' },
-      { name: 'Xeno Boku Trench Set', value: 10, demand: 'Very Low' },
-      { name: 'Sling', value: 4, demand: 'Very Low' },
-      { name: 'Shirt ', value: 2, demand: 'Very Low' },
-      { name: 'Pants', value: 2, demand: 'Very Low' },
-      { name: 'Shoes', value: 2, demand: 'Very Low' },
-      { name: 'Teen Gokan Set (Ripped)', value: 10, demand: 'Very Low' },
-      { name: 'Cape (Ripped)', value: 5, demand: 'Very Low' },
-      { name: 'Cape', value: 5, demand: 'Very Low' },
-      { name: 'Shirt', value: 2, demand: 'Very Low' },
-      { name: 'Pants', value: 2, demand: 'Very Low' },
-      { name: 'Shoes', value: 1, demand: 'Very Low' },
-      { name: 'Carnaval Set (M)', value: 10, demand: 'Very Low' },
-      { name: 'Hat', value: 2, demand: 'Very Low' },
-      { name: 'Wings', value: 3, demand: 'Very Low' },
-      { name: 'Shirt', value: 2, demand: 'Very Low' },
-      { name: 'Pant', value: 2, demand: 'Very Low' },
-      { name: 'Shoes', value: 1, demand: 'Very Low' },
-      { name: 'Carnaval Set (F)', value: 10, demand: 'Very Low' },
-      { name: 'Hat', value: 2, demand: 'Very Low' },
-      { name: 'Wings', value: 3, demand: 'Very Low' },
-      { name: 'Shirt', value: 2, demand: 'Very Low' },
-      { name: 'Pant', value: 2, demand: 'Very Low' },
-      { name: 'Shoes', value: 1, demand: 'Very Low' },
-      { name: 'Prince Reindeer Set', value: 10, demand: 'Very Low' },
-      { name: 'Brasil Latina Set', value: 7, demand: 'Very Low' },
-      { name: 'Sweet Gothic Set', value: 7, demand: 'Very Low' },
-      { name: 'Cupid Set', value: 7, demand: 'Very Low' },
-      { name: 'Krampus Moro Set', value: 7, demand: 'Very Low' },
-      { name: 'Ripped Santa Set', value: 7, demand: 'Very Low' },
-      { name: 'Bunny Set (Valentines)', value: 5, demand: 'Very Low' },
-      { name: 'Bear Set', value: 5, demand: 'Very Low' },
-      { name: 'Corrupted Saiyan Set', value: 5, demand: 'Very Low' },
-      { name: 'Super Boo Set', value: 5, demand: 'Very Low' },
-      { name: 'Arm Bands', value: 2, demand: 'Very Low' },
-      { name: 'Pants', value: 2, demand: 'Very Low' },
-      { name: 'Shoes', value: 1, demand: 'Very Low' },
-      { name: 'Halfla Set', value: 5, demand: 'Very Low' },
-      { name: 'Shirt', value: 2, demand: 'Very Low' },
-      { name: 'Pants', value: 2, demand: 'Very Low' },
-      { name: 'Shoes', value: 1, demand: 'Very Low' },
-      { name: 'Zama Set', value: 5, demand: 'Very Low' },
-      { name: 'Shirt', value: 2, demand: 'Very Low' },
-      { name: 'Pant', value: 2, demand: 'Very Low' },
-      { name: 'Shoes', value: 1, demand: 'Very Low' },
-      { name: 'Brolo (Z) Set', value: 3, demand: 'Very Low' },
-      { name: 'Shirt', value: 1, demand: 'Very Low' },
-      { name: 'Pants', value: 1, demand: 'Very Low' },
-      { name: 'Shoes', value: 1, demand: 'Very Low' },
-      { name: 'Broly (S) Set', value: 1, demand: 'Very Low' },
-      { name: "Hair Glow (Halloween '24)", value: 95, demand: 'Low' },
-      { name: 'Hair Glow (White)', value: 7, demand: 'Very Low' },
-      { name: 'Hair Glow (Yellow)', value: 5, demand: 'Very Low' },
-      { name: 'Halloween 2023 Aura', value: 4000, demand: 'Low' },
-      { name: 'Frost SSJ4', value: 2580, demand: 'Medium' },
-      { name: 'Shadow SSJ4', value: 1200, demand: 'High-Very High' },
-      { name: 'Festive Aura', value: 415, demand: 'Very Low-Low' },
-      { name: 'Headless Aura', value: 250, demand: 'Low-Medium' },
-      { name: 'Halloween 2024 Aura', value: 190, demand: 'Medium-High' },
-      { name: 'Ultra Instinkt', value: 145, demand: 'Very Low-Low' },
-      { name: 'Easter Aura', value: 70, demand: 'Very Low-Low' },
-      { name: 'Halloween 2025 Aura', value: 30, demand: 'Low' },
-      { name: 'Lovebound Aura', value: 20, demand: 'Very Low' },
-      { name: 'Brasil Latina Aura', value: 15, demand: 'Very Low' },
-      { name: 'Paschal Aura', value: 15, demand: 'Very Low' },
-      { name: 'Winter Spirit Aura', value: 12, demand: 'Very Low' },
-      { name: 'Blue Ice Aura', value: 12, demand: 'Very Low' },
-      { name: 'Ultra Eggo Aura ', value: 10, demand: 'Very Low' },
-      { name: 'Borealis Aura', value: 7, demand: 'Very Low' },
-      { name: 'SnowStorm Aura', value: 7, demand: 'Very Low' },
-      { name: 'Super Sayen BLUE Aura (OG)', value: 50, demand: 'Medium-High' },
-      { name: 'Super Sayen GOD Aura (OG)', value: 40, demand: 'Medium-High' },
-      { name: 'Super Sayen Rose Aura (OG)', value: 30, demand: 'Medium-High' },
-      { name: 'LSSJ Aura (OG)', value: 20, demand: 'Low-Medium' },
-      { name: 'Mystic Aura (OG)', value: 20, demand: 'Low-Medium' },
-      { name: 'Super Rage Sayen Aura (OG)', value: 20, demand: 'Low' },
-      { name: 'Super Sayen 4 Aura (OG)', value: 20, demand: 'Low' },
-      { name: 'Super Sayen 3 Aura (OG)', value: 15, demand: 'Low' },
-      { name: 'Super Sayen 2 Aura (OG)', value: 10, demand: 'Low' },
-      { name: 'Super Sayen Aura (OG)', value: 5, demand: 'Low' },
-      { name: 'Shenron Aura', value: 30, demand: 'Very Low' },
-      { name: 'Raid Grandmaster Aura', value: 20, demand: 'Very Low' },
-      { name: 'Divine Immortal Aura ', value: 15, demand: 'Very Low' },
-      { name: 'Demon 21 Aura', value: 5, demand: 'Very Low' },
-      { name: 'Brolo (Z) LSSJ Aura', value: 1, demand: 'Very Low' },
-      { name: 'Gogeta Aura', value: 1, demand: 'Very Low' },
-      { name: 'Super Sayen Rage', value: 1, demand: 'Very Low' },
-      { name: 'Cell Aura', value: 1, demand: 'Very Low' },
-      { name: 'Super Sayen 4 Aura', value: 1, demand: 'Very Low' },
-      { name: 'Shadow Mist Aura', value: 1, demand: 'None' },
-      { name: 'Kale LSSJ Aura', value: 1, demand: 'None' },
-      { name: 'Brolo (S) LSSJ Aura ', value: 1, demand: 'None' },
-      { name: 'Perma Destruction (Special Edition)', value: 4600, demand: 'Low-Medium' },
-      { name: 'Destruction Soul (Special Edition)', value: 4560, demand: 'Low-Medium' },
-      { name: 'Perma Savior (Special Edition)', value: 1080, demand: 'Low' },
-      { name: 'Savior Soul (Special Edition)', value: 1040, demand: 'Low' },
-      { name: 'Perma Beast (Special Edition)', value: 705, demand: 'Low' },
-      { name: 'Beast Soul (Special Edition)', value: 665, demand: 'Low' },
-      { name: 'Perma Immortal (Special Edition)', value: 440, demand: 'Very Low' },
-      { name: 'Immortal Soul (Special Edition)', value: 400, demand: 'Very Low' },
-      { name: 'Perm Beerus', value: 250, demand: 'Medium' },
-      { name: 'Beerus Soul', value: 210, demand: 'Medium' },
-      { name: 'Perma Despair', value: 80, demand: 'Very Low' },
-      { name: 'Despair Soul', value: 55, demand: 'Very Low' },
-      { name: 'Perma Beast', value: 70, demand: 'Very Low' },
-      { name: 'Beast Soul', value: 30, demand: 'Very Low' },
-      { name: 'Perma Haunted Rider', value: 50, demand: 'Very Low' },
-      { name: 'Haunted Rider', value: 25, demand: 'Very Low' },
-      { name: 'Perma Conqueror', value: 40, demand: 'Very Low' },
-      { name: 'Conqueror Soul', value: 25, demand: 'Very Low' },
-      { name: 'Perma Immortal', value: 40, demand: 'Very Low' },
-      { name: 'Immortal Soul', value: 25, demand: 'Very Low' },
-      { name: 'Perma Savior', value: 15, demand: 'Very Low' },
-      { name: 'Savior Soul', value: 5, demand: 'Very Low' },
-      { name: 'Perma Confident', value: 10, demand: 'Very Low' },
-      { name: 'Confident Soul', value: 5, demand: 'Very Low' },
-      { name: 'Perma Hope', value: 5, demand: 'None' },
-      { name: 'Hope Soul', value: 1, demand: 'None' },
-      { name: 'Perma Life Soul', value: 5, demand: 'None' },
-      { name: 'Life Soul', value: 1, demand: 'None' },
-      { name: 'Perma Exiled', value: 5, demand: 'None' },
-      { name: 'Exiled Soul', value: 1, demand: 'None' },
-      { name: 'Dullahan Fire', value: 750, demand: 'Medium' },
-      { name: 'Abstraction Set', value: 560, demand: 'Very Low' },
-      { name: 'Head Piece', value: 167, demand: 'Very Low' },
-      { name: 'Shirt', value: 60, demand: 'Very Low' },
-      { name: 'Pants', value: 108, demand: 'Very Low' },
-      { name: 'Shoes', value: 215, demand: 'Very Low' },
-      { name: 'Majin Tail', value: 560, demand: 'Very Low' },
-      { name: 'Fighting Spirit V2 Set', value: 425, demand: 'Very Low' },
-      { name: 'Head Piece', value: 80, demand: 'Very Low' },
-      { name: 'Shirt', value: 80, demand: 'Very Low' },
-      { name: 'Pants', value: 108, demand: 'Very Low' },
-      { name: 'Shoes', value: 133, demand: 'Very Low' },
-      { name: 'Fighting Spirit V1 Set', value: 190, demand: 'Very Low' },
-      { name: 'Head Piece', value: 26, demand: 'Very Low' },
-      { name: 'Shirt', value: 36, demand: 'Very Low' },
-      { name: 'Pants', value: 52, demand: 'Very Low' },
-      { name: 'Shoes', value: 76, demand: 'Very Low' },
-      { name: 'Turtle Shell', value: 70, demand: 'Very Low' },
-      { name: 'God Scythe', value: 20000, demand: 'Very Low' },
-      { name: 'Angel Scythe', value: 9200, demand: 'Very Low' },
-      { name: 'Festive Scythe', value: 2760, demand: 'Very Low-Low' },
-      { name: 'Void Scythe', value: 815, demand: 'Low-Medium' },
-      { name: 'Chocolate Scythe', value: 70, demand: 'Very Low' },
-      { name: 'Heart Ripper Scythe', value: 60, demand: 'Very Low' },
-      { name: 'Egg Rapier', value: 20, demand: 'Very Low' }
-    ];
-
-    // ====================================================================
-    // 3. VARIÁVEIS GLOBAIS
-    // ====================================================================
-    let currentUser = null;          // nome de usuário logado
-    let currentUserId = null;        // chave Firebase do usuário
-    let isAdmin = false;
-
-    let players = [];               // array de objetos { id, nome, poder, discord, inativo, participacao }
-    let items = [];                // array de objetos { id, nome, valor, demand }
-
-    // Para a calculadora – itens renomeados (com nomes de sets concatenados)
-    let renamedItems = [];
-    let setComponents = new Map();
-
-    // Estado da calculadora por usuário (armazenado no localStorage)
-    const playerData = {};
-
-    // DOM references – cache para performance
-    const DOM = {};
-
-    // ====================================================================
-    // 4. UTILITÁRIOS (toast, modal, navegação, etc.)
-    // ====================================================================
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
-      container.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
-    }
-
-    function openModal() {
-      document.getElementById('modalOverlay').classList.add('active');
-    }
-
-    function closeModal() {
-      document.getElementById('modalOverlay').classList.remove('active');
-    }
-
-    function navigateTo(page) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      const target = document.getElementById(`page-${page}`);
-      if (target) target.classList.add('active');
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      const navItem = document.querySelector(`.nav-item[data-page="${page}"]`);
-      if (navItem) navItem.classList.add('active');
-      const titles = {
-        dashboard: '📊 Dashboard',
-        calculadora: '🧮 Calculadora',
-        jogadores: '👥 Jogadores',
-        promocao: '⭐ Promoção',
-        'edit-items': '✏️ Editar Itens',
-        sistema: '⚙️ Sistema'
-      };
-      document.getElementById('pageTitle').textContent = titles[page] || page;
-    }
-
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('expanded');
-      document.getElementById('mainContent').classList.toggle('expanded');
-      const icon = document.getElementById('toggleIcon');
-      icon.classList.toggle('fa-chevron-right');
-      icon.classList.toggle('fa-chevron-left');
-    }
-
-    // ====================================================================
-    // 5. FUNÇÕES DE PERSISTÊNCIA – FIREBASE (com onValue)
-    // ====================================================================
-
-    // Carrega itens em tempo real
-    function loadItemsRealtime() {
-      const itemsRef = db.ref('itens');
-      itemsRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          items = Object.entries(data).map(([id, obj]) => ({
-            id: id,
-            nome: obj.nome || obj.name || '',
-            valor: obj.valor || obj.value || 0,
-            demand: obj.demand || ''
-          }));
-        } else {
-          // Se não houver dados, cria a partir dos defaults
-          seedDefaultItems();
-          return;
-        }
-        // Reconstroi renamedItems e sets
-        rebuildRenamedAndSets();
-        // Atualiza interface
-        populateSelects();
-        populateSuggestions();
-        renderEditItems();
-        updateDashboard();
-        updateAll(); // recalcula totais
+  // ── ADMIN USERS ───────────────────────────────────────────────────────
+  async function loadAdminUsers() {
+    const grid = document.getElementById('usersGrid');
+    grid.innerHTML = '<p style="color:var(--text-muted);">Carregando...</p>';
+    try {
+      const users = await window.fbLoadUsers();
+      grid.innerHTML = '';
+      users.forEach(u => {
+        const card = document.createElement('div');
+        card.className = 'user-card';
+        const isMaster = u.usuario === window.MASTER_ADMIN;
+        card.innerHTML = `
+          <div class="user-card-info">
+            <span class="user-card-name">${u.usuario} ${isMaster ? '<span class="type-badge type-admin">MASTER</span>' : ''}</span>
+            <span class="user-card-meta">Tipo: ${u.tipo || 'usuario'} · ${u.timestamp ? new Date(u.timestamp).toLocaleDateString('pt-BR') : '—'}</span>
+          </div>
+          <div class="user-card-actions">
+            ${!isMaster ? `
+              <button class="btn btn-secondary btn-sm" onclick="toggleUserAdmin('${u._key}','${u.tipo || 'usuario'}')">
+                <i class="fas fa-shield"></i> ${u.tipo === 'admin' ? 'Revogar Admin' : 'Tornar Admin'}
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="deleteUser('${u._key}','${u.usuario}')"><i class="fas fa-trash"></i></button>
+            ` : '<span style="color:var(--text-muted);font-size:12px;">Conta master protegida</span>'}
+          </div>`;
+        grid.appendChild(card);
       });
+      document.getElementById('statUsers').textContent = users.length;
+    } catch (e) {
+      grid.innerHTML = '<p style="color:#F87171;">Erro ao carregar usuários.</p>';
     }
+  }
 
-    // Carrega jogadores em tempo real
-    function loadPlayersRealtime() {
-      const playersRef = db.ref('jogadores');
-      playersRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          players = Object.entries(data).map(([id, obj]) => ({
-            id: id,
-            nome: obj.nome || '',
-            poder: obj.poder || '',
-            discord: obj.discord || '',
-            inativo: obj.inativo || 'não',
-            participacao: obj.participacao !== undefined ? obj.participacao : 0
-          }));
-        } else {
-          // Se não houver dados, cria a partir dos defaults
-          seedDefaultPlayers();
-          return;
-        }
-        renderPlayers();
-        updateDashboard();
-        updatePlayerSuggestions();
-        // Atualiza a lista da promoção (datalist)
-        const datalist = document.getElementById('playerSuggestions');
-        datalist.innerHTML = players.map(p => `<option value="${p.nome}">`).join('');
-      });
-    }
+  window.toggleUserAdmin = async function(key, tipo) {
+    const newTipo = tipo === 'admin' ? 'usuario' : 'admin';
+    try {
+      await window.fbUpdateUserType(key, newTipo);
+      showToast(`Usuário ${newTipo === 'admin' ? 'promovido a Admin' : 'rebaixado a Usuário'}.`, 'success');
+      loadAdminUsers();
+    } catch (e) { showToast('Erro ao alterar tipo.', 'error'); }
+  };
 
-    // Seeds iniciais (apenas se o nó estiver vazio)
-    function seedDefaultItems() {
-      // Verifica se já existem itens
-      db.ref('itens').once('value', (snap) => {
-        if (!snap.exists()) {
-          // Cria cada item com push
-          DEFAULT_ITEMS.forEach(item => {
-            db.ref('itens').push({
-              nome: item.name,
-              valor: item.value,
-              demand: item.demand
-            });
-          });
-          showToast('Itens padrão criados no Firebase.', 'success');
-        }
-      });
-    }
+  window.deleteUser = async function(key, name) {
+    if (!confirm(`Deletar o usuário "${name}"? Esta ação não pode ser desfeita.`)) return;
+    try {
+      await window.fbDeleteUser(key);
+      showToast('Usuário deletado.', 'success');
+      loadAdminUsers();
+    } catch (e) { showToast('Erro ao deletar usuário.', 'error'); }
+  };
 
-    function seedDefaultPlayers() {
-      db.ref('jogadores').once('value', (snap) => {
-        if (!snap.exists()) {
-          DEFAULT_PLAYERS.forEach(p => {
-            db.ref('jogadores').push({
-              nome: p.name,
-              poder: p.power,
-              discord: p.discord || '',
-              inativo: p.inactive || 'não',
-              participacao: p.participation || 0
-            });
-          });
-          showToast('Jogadores padrão criados no Firebase.', 'success');
-        }
-      });
-    }
+  // ── ADMIN TABS ────────────────────────────────────────────────────────
+  window.switchAdminTab = function(tab) {
+    document.querySelectorAll('.admin-tab').forEach((t, i) => {
+      const tabs = ['users','players','items','json'];
+      t.classList.toggle('active', tabs[i] === tab);
+    });
+    document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('adminTab-' + tab).classList.add('active');
+    if (tab === 'users') loadAdminUsers();
+  };
 
-    // ====================================================================
-    // 6. RENAME DE SETS E MAPA DE COMPONENTES (mesma lógica original)
-    // ====================================================================
-    function renameSetComponents(arr) {
-      const renamed = [];
-      let currentSet = null;
-      for (const item of arr) {
-        const name = item.nome.trim();
-        const isSet = /Set/.test(name) || /Bundle/.test(name);
-        if (isSet && !name.includes('Back') && !name.includes('Hat') && !name.includes('Shirt') && !name.includes('Pants') && !name.includes('Shoes') && !name.includes('Head') && !name.includes('Cape') && !name.includes('Wings') && !name.includes('Mask') && !name.includes('Bandana') && !name.includes('Headband') && !name.includes('Helmet') && !name.includes('Sling') && !name.includes('Monocle') && !name.includes('Necklace') && !name.includes('Face') && !name.includes('Neck') && !name.includes('Dress') && !name.includes('Bucket') && !name.includes('Hair') && !name.includes('Arm Bands')) {
-          currentSet = name;
-          renamed.push({ ...item, nome: name });
-          continue;
-        }
-        if (currentSet && !isSet) {
-          const genericParts = ['Hat', 'Shirt', 'Pants', 'Shoes', 'Back', 'Head', 'Cape', 'Wings', 'Mask', 'Bandana',
-            'Headband', 'Helmet', 'Sling', 'Monocle', 'Necklace', 'Face', 'Neck', 'Dress', 'Bucket', 'Hair',
-            'Arm Bands', 'Pant', 'Shirtless', 'Head Piece', 'Bucket', 'Shoes', 'Pants ', 'Hat ', 'Shirt ',
-            'Pants  ', 'Helmet ', 'Cape (Ripped)', 'Pant', 'Cape'
-          ];
-          let isGeneric = false;
-          for (const part of genericParts) {
-            if (name === part || name.startsWith(part + ' ') || name.startsWith(part + '(')) {
-              isGeneric = true;
-              break;
-            }
-          }
-          if (isGeneric) {
-            renamed.push({ ...item, nome: currentSet + ' ' + name });
-          } else {
-            renamed.push({ ...item });
-          }
-        } else {
-          renamed.push({ ...item });
-        }
-      }
-      return renamed;
-    }
+  // ── ADMIN ITEMS ───────────────────────────────────────────────────────
+  function renderAdminItems(filter = '') {
+    const container = document.getElementById('adminItemsContainer');
+    container.innerHTML = '';
+    const filtered = filter ? allItems.filter(i => i.name.toLowerCase().includes(filter.toLowerCase())) : allItems;
+    filtered.forEach((item, idx) => {
+      const realIdx = allItems.indexOf(item);
+      const row = document.createElement('div');
+      row.className = 'item-edit-row';
+      row.innerHTML = `
+        <span>${item.name}</span>
+        <input type="number" id="itemVal_${realIdx}" value="${item.value}" min="0">
+        <span style="font-size:11px;color:var(--text-muted);">${item.demand || ''}</span>`;
+      container.appendChild(row);
+    });
+  }
 
-    function buildSetMap(arr) {
-      const map = new Map();
-      for (let i = 0; i < arr.length; i++) {
-        const it = arr[i];
-        if (/Set/.test(it.nome) && !it.nome.includes('Set ') && !it.nome.includes('Set(') && !it.nome.includes('Set (') && !it.nome.includes('Set  ')) {
-          const key = it.nome;
-          const comps = [];
-          for (let j = i + 1; j < arr.length; j++) {
-            const next = arr[j];
-            if (next.nome.startsWith(key + ' ')) comps.push(j);
-            else break;
-          }
-          if (comps.length) map.set(key, comps);
-        }
-      }
-      return map;
-    }
+  window.filterAdminItems = function() {
+    renderAdminItems(document.getElementById('itemSearchAdmin').value);
+  };
 
-    function rebuildRenamedAndSets() {
-      renamedItems = renameSetComponents(items);
-      renamedItems.sort((a, b) => a.nome.localeCompare(b.nome));
-      setComponents = buildSetMap(renamedItems);
-    }
+  window.saveAllItems = async function() {
+    allItems.forEach((item, idx) => {
+      const inp = document.getElementById('itemVal_' + idx);
+      if (inp) item.value = parseInt(inp.value) || 0;
+    });
+    try {
+      await window.fbSaveItems(allItems);
+      populateTradeSelects();
+      showToast('Itens salvos no Firebase!', 'success');
+    } catch (e) { showToast('Erro ao salvar itens.', 'error'); }
+  };
 
-    // ====================================================================
-    // 7. CALCULADORA – LÓGICA (com localStorage por usuário)
-    // ====================================================================
-    function getCurrentData() {
-      if (!currentUser) return { leftItems: [], rightItems: [] };
-      const key = 'dragonSoul_calc_' + currentUser;
-      if (!playerData[currentUser]) {
-        const stored = localStorage.getItem(key);
-        if (stored) {
-          try { playerData[currentUser] = JSON.parse(stored); } catch (e) {}
-        }
-        if (!playerData[currentUser]) playerData[currentUser] = { leftItems: [], rightItems: [] };
-      }
-      return playerData[currentUser];
-    }
+  window.resetAllItems = async function() {
+    if (!confirm('Restaurar todos os valores para o padrão?')) return;
+    allItems = DEFAULT_ITEMS.map(i => ({ ...i }));
+    try {
+      await window.fbSaveItems(allItems);
+      renderAdminItems();
+      populateTradeSelects();
+      showToast('Valores restaurados!', 'success');
+    } catch (e) { showToast('Erro ao restaurar itens.', 'error'); }
+  };
 
-    function persistCurrentData() {
-      if (currentUser && playerData[currentUser]) {
-        localStorage.setItem('dragonSoul_calc_' + currentUser, JSON.stringify(playerData[currentUser]));
-      }
-    }
-
-    function updateAll() {
-      const data = getCurrentData();
-      const left = data.leftItems || [];
-      const right = data.rightItems || [];
-      const tl = left.reduce((s, i) => s + (renamedItems[i] ? renamedItems[i].valor : 0), 0);
-      const tr = right.reduce((s, i) => s + (renamedItems[i] ? renamedItems[i].valor : 0), 0);
-      document.getElementById('tl').textContent = tl;
-      document.getElementById('tr').textContent = tr;
-      document.getElementById('totalL').textContent = tl;
-      document.getElementById('totalR').textContent = tr;
-      const diff = tr - tl;
-      document.getElementById('diffDisplay').textContent = diff;
-      const res = document.getElementById('res');
-      if (diff > 0) res.textContent = 'Vale a pena receber';
-      else if (diff < 0) res.textContent = 'Você está oferecendo mais';
-      else res.textContent = 'Troca justa';
-      renderList('L', left);
-      renderList('R', right);
-      document.getElementById('warnL').textContent = left.length >= 9 ? ' (limite atingido)' : '';
-      document.getElementById('warnR').textContent = right.length >= 9 ? ' (limite atingido)' : '';
-      persistCurrentData();
-    }
-
-    function renderList(side, arr) {
-      const ul = side === 'L' ? document.getElementById('L') : document.getElementById('R');
-      ul.innerHTML = '';
-      arr.forEach((idx, pos) => {
-        const it = renamedItems[idx];
-        if (!it) return;
-        const li = document.createElement('li');
-        li.innerHTML =
-          `<span>${it.nome} - ${it.valor}</span><button class="btn btn-sm btn-danger" onclick="removeItem('${side}',${pos})">✕</button>`;
-        ul.appendChild(li);
-      });
-    }
-
-    function addItem(side, idx) {
-      idx = parseInt(idx);
-      const data = getCurrentData();
-      const arr = side === 'L' ? data.leftItems : data.rightItems;
-      if (arr.length >= 9) { alert('Limite de 9 itens por lado.'); return; }
-      arr.push(idx);
-      updateAll();
-    }
-
-    function removeItem(side, pos) {
-      const data = getCurrentData();
-      const arr = side === 'L' ? data.leftItems : data.rightItems;
-      arr.splice(pos, 1);
-      updateAll();
-    }
-
-    function clearSide(side) {
-      const data = getCurrentData();
-      const arr = side === 'L' ? data.leftItems : data.rightItems;
-      arr.length = 0;
-      updateAll();
-    }
-
-    function addSet(side, setName) {
-      const comps = setComponents.get(setName) || [];
-      if (!comps.length) { alert('Nenhum componente encontrado para ' + setName); return; }
-      const data = getCurrentData();
-      const arr = side === 'L' ? data.leftItems : data.rightItems;
-      let added = 0;
-      for (const idx of comps) {
-        if (arr.length >= 9) { alert('Limite de 9 itens atingido. Adicionados ' + added + ' itens.'); break; }
-        arr.push(idx);
-        added++;
-      }
-      updateAll();
-    }
-
-    function populateSelects() {
-      const a = document.getElementById('a');
-      const b = document.getElementById('b');
-      a.innerHTML = '';
-      b.innerHTML = '';
-      renamedItems.forEach((it, i) => {
+  // ── CALCULADORA ───────────────────────────────────────────────────────
+  function populateTradeSelects() {
+    ['selectA','selectB'].forEach(id => {
+      const sel = document.getElementById(id);
+      sel.innerHTML = '';
+      allItems.forEach((item, i) => {
         const opt = document.createElement('option');
         opt.value = i;
-        opt.text = it.nome + ' (' + it.valor + ')';
-        a.add(opt);
-        b.add(opt.cloneNode(true));
+        opt.text = `${item.name} (${item.value})`;
+        sel.add(opt);
       });
-    }
+    });
+    setupSearch();
+  }
 
-    function populateSuggestions() {
-      const suggestL = document.getElementById('suggestL');
-      const suggestR = document.getElementById('suggestR');
-      suggestL.innerHTML = '';
-      suggestR.innerHTML = '';
-      for (const [setName, comps] of setComponents) {
-        if (!comps.length) continue;
-        const btnL = document.createElement('button');
-        btnL.className = 'suggest-item';
-        btnL.textContent = setName + ' (' + comps.length + ' itens)';
-        btnL.onclick = () => { addSet('L', setName);
-          toggleSuggest('L'); };
-        suggestL.appendChild(btnL);
-        const btnR = document.createElement('button');
-        btnR.className = 'suggest-item';
-        btnR.textContent = setName + ' (' + comps.length + ' itens)';
-        btnR.onclick = () => { addSet('R', setName);
-          toggleSuggest('R'); };
-        suggestR.appendChild(btnR);
-      }
-    }
+  window.addItem = function(side) {
+    const sel = document.getElementById(side === 'L' ? 'selectA' : 'selectB');
+    const idx = parseInt(sel.value);
+    if (isNaN(idx)) return;
+    if (side === 'L') tradeL.push(idx); else tradeR.push(idx);
+    updateTrade();
+  };
 
-    function toggleSuggest(side) {
-      const dropdown = side === 'L' ? document.getElementById('suggestL') : document.getElementById('suggestR');
-      dropdown.classList.toggle('show');
-    }
+  window.removeItem = function(side, pos) {
+    if (side === 'L') tradeL.splice(pos, 1); else tradeR.splice(pos, 1);
+    updateTrade();
+  };
 
-    // ====================================================================
-    // 8. CRUD JOGADORES (com update/remove)
-    // ====================================================================
-    function renderPlayers() {
-      const tbody = document.getElementById('playersBody');
-      tbody.innerHTML = '';
-      players.forEach((p) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><strong>${p.nome}</strong></td>
-          <td class="power">${p.poder}</td>
-          <td>${p.discord ? `<a href="${p.discord}" target="_blank" class="discord-link">${p.discord}</a>` : '—'}</td>
-          <td>${p.inativo || 'não'}</td>
-          <td>${p.participacao !== undefined ? p.participacao : 0}</td>
-          <td class="player-actions adm-only" style="display:${isAdmin ? '' : 'none'};">
-            <button onclick="openEditModal('${p.id}')"><i class="fas fa-edit"></i></button>
-            <button class="del-btn" onclick="deletePlayer('${p.id}')"><i class="fas fa-trash"></i></button>
-          </td>
-        `;
-        tbody.appendChild(tr);
+  window.clearSide = function(side) {
+    if (side === 'L') tradeL = []; else tradeR = [];
+    updateTrade();
+  };
+
+  function updateTrade() {
+    const sumL = tradeL.reduce((s, i) => s + (allItems[i]?.value || 0), 0);
+    const sumR = tradeR.reduce((s, i) => s + (allItems[i]?.value || 0), 0);
+    document.getElementById('totalL').textContent = sumL;
+    document.getElementById('totalR').textContent = sumR;
+    document.getElementById('barL').textContent = sumL;
+    document.getElementById('barR').textContent = sumR;
+    const diff = sumR - sumL;
+    document.getElementById('diffVal').textContent = diff;
+    document.getElementById('res').textContent = diff > 0 ? 'Vale a pena receber' : diff < 0 ? 'Você está oferecendo mais' : 'Troca justa';
+
+    ['L','R'].forEach(side => {
+      const ul = document.getElementById('list' + side);
+      ul.innerHTML = '';
+      (side === 'L' ? tradeL : tradeR).forEach((idx, pos) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${allItems[idx]?.name} — ${allItems[idx]?.value}</span>
+          <button class="btn btn-danger btn-sm" onclick="removeItem('${side}',${pos})">✕</button>`;
+        ul.appendChild(li);
       });
-      // Mostra/oculta coluna de ações
-      document.querySelectorAll('.styled-table .adm-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
-      document.getElementById('addPlayerArea').style.display = isAdmin ? 'flex' : 'none';
-      document.getElementById('guestMsg').style.display = isAdmin ? 'none' : 'block';
-    }
+    });
+  }
 
-    function updatePlayerSuggestions() {
-      const datalist = document.getElementById('playerSuggestions');
-      datalist.innerHTML = players.map(p => `<option value="${p.nome}">`).join('');
-    }
-
-    function addPlayer() {
-      if (!isAdmin) { showToast('Apenas administradores podem adicionar.', 'error'); return; }
-      const nome = document.getElementById('newPlayerName').value.trim();
-      const poder = document.getElementById('newPlayerPower').value.trim();
-      const discord = document.getElementById('newPlayerDiscord').value.trim();
-      const inativo = document.getElementById('newPlayerInactive').value;
-      const participacao = parseInt(document.getElementById('newPlayerParticipation').value) || 0;
-      if (!nome || !poder) { showToast('Nome e poder são obrigatórios.', 'error'); return; }
-      db.ref('jogadores').push({
-        nome, poder, discord, inativo, participacao
-      }).then(() => {
-        showToast('Jogador adicionado!', 'success');
-        document.getElementById('newPlayerName').value = '';
-        document.getElementById('newPlayerPower').value = '';
-        document.getElementById('newPlayerDiscord').value = '';
-        document.getElementById('newPlayerInactive').value = 'não';
-        document.getElementById('newPlayerParticipation').value = '0';
-      }).catch(err => showToast('Erro: ' + err.message, 'error'));
-    }
-
-    function openEditModal(id) {
-      const p = players.find(p => p.id === id);
-      if (!p) return;
-      document.getElementById('editPlayerName').value = p.nome;
-      document.getElementById('editPlayerPower').value = p.poder;
-      document.getElementById('editPlayerDiscord').value = p.discord || '';
-      document.getElementById('editPlayerInactive').value = p.inativo || 'não';
-      document.getElementById('editPlayerParticipation').value = p.participacao || 0;
-      document.getElementById('modalTitle').textContent = 'Editar Jogador';
-      document.getElementById('saveEditPlayerBtn').dataset.id = id;
-      openModal();
-    }
-
-    function saveEditPlayer() {
-      const id = document.getElementById('saveEditPlayerBtn').dataset.id;
-      const nome = document.getElementById('editPlayerName').value.trim();
-      const poder = document.getElementById('editPlayerPower').value.trim();
-      const discord = document.getElementById('editPlayerDiscord').value.trim();
-      const inativo = document.getElementById('editPlayerInactive').value;
-      const participacao = parseInt(document.getElementById('editPlayerParticipation').value) || 0;
-      if (!nome || !poder) { showToast('Nome e poder são obrigatórios.', 'error'); return; }
-      db.ref('jogadores/' + id).update({
-        nome, poder, discord, inativo, participacao
-      }).then(() => {
-        showToast('Jogador atualizado!', 'success');
-        closeModal();
-      }).catch(err => showToast('Erro: ' + err.message, 'error'));
-    }
-
-    function deletePlayer(id) {
-      const p = players.find(p => p.id === id);
-      if (!confirm(`Remover jogador "${p.nome}"?`)) return;
-      db.ref('jogadores/' + id).remove()
-        .then(() => showToast('Jogador removido.', 'success'))
-        .catch(err => showToast('Erro: ' + err.message, 'error'));
-    }
-
-    // ====================================================================
-    // 9. CRUD ITENS (edição de valores)
-    // ====================================================================
-    function renderEditItems() {
-      const container = document.getElementById('editItemsContainer');
-      container.innerHTML = '';
-      if (!isAdmin) {
-        container.innerHTML = '<p style="color:var(--text-muted);">Apenas administradores podem editar valores.</p>';
-        return;
-      }
-      items.forEach((it) => {
-        const row = document.createElement('div');
-        row.className = 'item-row';
-        row.innerHTML = `
-          <span>${it.nome}</span>
-          <input type="number" id="itemVal_${it.id}" value="${it.valor}" min="0" step="1">
-          <button class="btn btn-sm btn-primary" onclick="saveItemValue('${it.id}')">Salvar</button>
-          <button class="btn btn-sm btn-secondary" onclick="resetItemValue('${it.id}')">↺</button>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    function saveItemValue(id) {
-      if (!isAdmin) { showToast('Apenas administradores podem editar.', 'error'); return; }
-      const input = document.getElementById('itemVal_' + id);
-      const valor = parseInt(input.value);
-      if (isNaN(valor) || valor < 0) { showToast('Valor inválido.', 'error'); return; }
-      db.ref('itens/' + id).update({ valor })
-        .then(() => showToast('Valor atualizado!', 'success'))
-        .catch(err => showToast('Erro: ' + err.message, 'error'));
-    }
-
-    function resetItemValue(id) {
-      const item = items.find(it => it.id === id);
-      if (!item) return;
-      const def = DEFAULT_ITEMS.find(d => d.name === item.nome);
-      if (!def) return;
-      db.ref('itens/' + id).update({ valor: def.value })
-        .then(() => showToast('Valor restaurado.', 'success'))
-        .catch(err => showToast('Erro: ' + err.message, 'error'));
-    }
-
-    function resetAllItems() {
-      if (!isAdmin) { showToast('Apenas administradores.', 'error'); return; }
-      if (!confirm('Restaurar todos os valores para o padrão?')) return;
-      const updates = {};
-      items.forEach(item => {
-        const def = DEFAULT_ITEMS.find(d => d.name === item.nome);
-        if (def) {
-          updates['itens/' + item.id + '/valor'] = def.value;
-        }
-      });
-      db.ref().update(updates)
-        .then(() => showToast('Todos os valores restaurados.', 'success'))
-        .catch(err => showToast('Erro: ' + err.message, 'error'));
-    }
-
-    // ====================================================================
-    // 10. DASHBOARD E SISTEMA
-    // ====================================================================
-    function updateDashboard() {
-      document.getElementById('statPlayers').textContent = players.length;
-      document.getElementById('statItems').textContent = items.length;
-      const now = new Date().toLocaleString();
-      document.getElementById('statLastUpdate').textContent = now;
-      document.getElementById('lastUpdate').textContent = now;
-      // Espaço usado (estimado)
-      const size = new Blob([JSON.stringify(localStorage)]).size;
-      document.getElementById('statStorage').textContent = (size / 1024).toFixed(1) + ' KB';
-      document.getElementById('storageSize').textContent = (size / 1024).toFixed(1) + ' KB';
-    }
-
-    // ====================================================================
-    // 11. EXPORTAÇÃO / IMPORTAÇÃO / BACKUP (com IDs)
-    // ====================================================================
-    function exportFullData() {
-      const data = { jogadores: players, itens: items };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'coa_dados.json';
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Dados exportados!', 'success');
-    }
-
-    function importFullData(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
-          if (!data.jogadores || !data.itens) throw new Error('Estrutura inválida.');
-          // Importar jogadores e itens (sobrescreve)
-          const updates = {};
-          data.jogadores.forEach(p => {
-            const ref = db.ref('jogadores').push();
-            updates[ref.key] = p;
-          });
-          data.itens.forEach(i => {
-            const ref = db.ref('itens').push();
-            updates[ref.key] = i;
-          });
-          db.ref().update(updates).then(() => {
-            showToast('Dados importados com sucesso!', 'success');
-          }).catch(err => showToast('Erro: ' + err.message, 'error'));
-        } catch (err) {
-          showToast('Arquivo inválido.', 'error');
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function exportBackup() {
-      // Exporta todos os dados do Firebase (apenas nós conhecidos)
-      db.ref().once('value', (snap) => {
-        const data = snap.val();
-        if (!data) { showToast('Nenhum dado para exportar.', 'error'); return; }
-        // Filtra apenas os nós que interessam (registros, jogadores, itens)
-        const backup = {
-          registros: data.registros || {},
-          jogadores: data.jogadores || {},
-          itens: data.itens || {}
+  function setupSearch() {
+    function handle(input, side, dropdown) {
+      const term = input.value.toLowerCase().trim();
+      dropdown.innerHTML = '';
+      if (!term) { dropdown.classList.remove('show'); return; }
+      const matches = allItems.filter(it => it.name.toLowerCase().includes(term)).slice(0, 12);
+      if (!matches.length) { dropdown.classList.remove('show'); return; }
+      matches.forEach((item) => {
+        const idx = allItems.indexOf(item);
+        const btn = document.createElement('button');
+        btn.className = 'suggest-item';
+        btn.innerHTML = `${item.name} <span style="color:var(--neon-purple);">(${item.value})</span>`;
+        btn.onclick = () => {
+          if (side === 'L') tradeL.push(idx); else tradeR.push(idx);
+          updateTrade();
+          input.value = '';
+          dropdown.classList.remove('show');
         };
-        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'coa_backup_' + new Date().toISOString().slice(0,10) + '.json';
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast('Backup exportado!', 'success');
+        dropdown.appendChild(btn);
       });
+      dropdown.classList.add('show');
     }
+    const sL = document.getElementById('searchInputL'), dL = document.getElementById('suggestL');
+    const sR = document.getElementById('searchInputR'), dR = document.getElementById('suggestR');
+    sL.oninput = () => handle(sL, 'L', dL);
+    sR.oninput = () => handle(sR, 'R', dR);
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.search-wrap') && !e.target.closest('.suggest-dropdown')) {
+        dL.classList.remove('show'); dR.classList.remove('show');
+      }
+    });
+  }
 
-    function restoreBackup(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
-          if (!data.registros && !data.jogadores && !data.itens) throw new Error('Estrutura inválida.');
-          if (!confirm('Isso sobrescreverá todos os dados atuais. Continuar?')) return;
-          const updates = {};
-          if (data.registros) {
-            Object.entries(data.registros).forEach(([key, val]) => {
-              updates['registros/' + key] = val;
-            });
-          }
-          if (data.jogadores) {
-            Object.entries(data.jogadores).forEach(([key, val]) => {
-              updates['jogadores/' + key] = val;
-            });
-          }
-          if (data.itens) {
-            Object.entries(data.itens).forEach(([key, val]) => {
-              updates['itens/' + key] = val;
-            });
-          }
-          db.ref().update(updates).then(() => {
-            showToast('Backup restaurado com sucesso!', 'success');
-          }).catch(err => showToast('Erro: ' + err.message, 'error'));
-        } catch (err) {
-          showToast('Arquivo inválido.', 'error');
-        }
-      };
-      reader.readAsText(file);
-    }
+  // ── PROMOÇÃO ──────────────────────────────────────────────────────────
+  function renderPlayerSuggestions() {
+    const dl = document.getElementById('playerSuggestions');
+    dl.innerHTML = '';
+    allPlayers.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name;
+      dl.appendChild(opt);
+    });
+  }
 
-    function copyShareCode() {
-      // Gera código base64 do estado atual (jogadores e itens)
-      const data = { jogadores: players, itens: items };
-      const json = JSON.stringify(data);
-      const encoded = btoa(unescape(encodeURIComponent(json))); // suporte a UTF-8
-      navigator.clipboard.writeText(encoded).then(() => {
-        showToast('Código copiado!', 'success');
-      }).catch(() => {
-        // fallback
-        const ta = document.createElement('textarea');
-        ta.value = encoded;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        ta.remove();
-        showToast('Código copiado!', 'success');
-      });
-    }
+  window.generatePromo = function() {
+    const resp = document.getElementById('promoResp').value.trim() || 'Não informado';
+    const ind  = document.getElementById('promoInd').value.trim() || 'Não informado';
+    const old  = document.getElementById('promoOld').value.trim() || 'Não informada';
+    const nw   = document.getElementById('promoNew').value.trim() || 'Não informada';
+    const mot  = document.getElementById('promoMotivo').value.trim() || 'Motivo não informado.';
+    const hoje = new Date();
+    const data = `${String(hoje.getDate()).padStart(2,'0')}/${String(hoje.getMonth()+1).padStart(2,'0')}/${hoje.getFullYear()}`;
+    document.getElementById('promoOutput').value =
+`{PROMOÇÃO}
+--------------------------------------------------------------
+⇛ Responsável: ${resp}
+--------------------------------------------------------------
+⇛ Indivíduo promovido: ${ind}
+--------------------------------------------------------------
+⇛ Patente antiga: ${old}
+--------------------------------------------------------------
+⇛ Patente nova: ${nw}
+--------------------------------------------------------------
+⇛ Motivo: ${mot}
+--------------------------------------------------------------
+⇛ Data: ${data}.
+--------------------------------------------------------------`;
+  };
 
-    function importShareCode() {
-      const code = document.getElementById('shareCodeInput').value.trim();
-      if (!code) { showToast('Cole um código válido.', 'error'); return; }
+  window.copyPromo = function() {
+    const txt = document.getElementById('promoOutput').value;
+    if (!txt) { showToast('Nada para copiar.', 'error'); return; }
+    navigator.clipboard.writeText(txt).then(() => showToast('Copiado!', 'success'));
+  };
+
+  window.clearPromo = function() { document.getElementById('promoOutput').value = ''; };
+
+  // ── SISTEMA (export/import/backup) ────────────────────────────────────
+  window.exportFullData = function() {
+    const data = { jogadores: allPlayers, itens: allItems };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'coa_dados.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Dados exportados!', 'success');
+  };
+
+  window.importFullData = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
       try {
-        const json = decodeURIComponent(escape(atob(code)));
-        const data = JSON.parse(json);
+        const data = JSON.parse(e.target.result);
         if (!data.jogadores || !data.itens) throw new Error('Estrutura inválida.');
         if (!confirm('Isso sobrescreverá os dados atuais. Continuar?')) return;
-        const updates = {};
-        data.jogadores.forEach(p => {
-          const ref = db.ref('jogadores').push();
-          updates[ref.key] = p;
-        });
-        data.itens.forEach(i => {
-          const ref = db.ref('itens').push();
-          updates[ref.key] = i;
-        });
-        db.ref().update(updates).then(() => {
-          showToast('Dados importados do código!', 'success');
-        }).catch(err => showToast('Erro: ' + err.message, 'error'));
+        await window.fbSavePlayers(data.jogadores);
+        await window.fbSaveItems(data.itens);
+        showToast('Dados importados com sucesso!', 'success');
+        await loadAllData();
       } catch (err) {
-        showToast('Código inválido.', 'error');
+        showToast('Arquivo inválido.', 'error');
       }
-    }
+    };
+    reader.readAsText(file);
+  };
 
-    function clearAllStorage() {
-      if (!isAdmin) { showToast('Apenas administradores.', 'error'); return; }
-      if (!confirm('Limpar todo o localStorage? Isso não afeta o Firebase.')) return;
-      localStorage.clear();
-      showToast('LocalStorage limpo.', 'success');
-    }
+  window.exportBackup = function() {
+    const data = { jogadores: allPlayers, itens: allItems };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'coa_backup_' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Backup exportado!', 'success');
+  };
 
-    // ====================================================================
-    // 12. PROMOÇÃO
-    // ====================================================================
-    function generatePromo() {
-      const responsavel = document.getElementById('promoResponsavel').value.trim() || 'Não informado';
-      const individuo = document.getElementById('promoIndividuo').value.trim() || 'Não informado';
-      const patenteAntiga = document.getElementById('promoPatenteAntiga').value.trim() || 'Não informada';
-      const patenteNova = document.getElementById('promoPatenteNova').value.trim() || 'Não informada';
-      const motivo = document.getElementById('promoMotivo').value.trim() || 'Motivo não informado.';
-      const hoje = new Date();
-      const dataStr = `${String(hoje.getDate()).padStart(2,'0')}/${String(hoje.getMonth()+1).padStart(2,'0')}/${hoje.getFullYear()}`;
-      const mensagem =
-        `{PROMOÇÃO} \n--------------------------------------------------------------\n⇛ Responsável: ${responsavel}\n--------------------------------------------------------------\n⇛ Indivíduo promovido: ${individuo}\n--------------------------------------------------------------\n⇛ Patente antiga: ${patenteAntiga}\n--------------------------------------------------------------\n⇛ Patente nova: ${patenteNova}\n--------------------------------------------------------------\n⇛ Motivo: ${motivo}\n--------------------------------------------------------------\n⇛ Data: ${dataStr}.\n--------------------------------------------------------------`;
-      document.getElementById('promoOutput').value = mensagem;
-    }
-
-    function copyPromo() {
-      const text = document.getElementById('promoOutput').value;
-      if (!text) { showToast('Nenhuma promoção gerada.', 'error'); return; }
-      navigator.clipboard.writeText(text).then(() => showToast('Copiado!', 'success'))
-        .catch(() => {
-          const ta = document.createElement('textarea');
-          ta.value = text;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          ta.remove();
-          showToast('Copiado!', 'success');
-        });
-    }
-
-    function downloadPromoTxt() {
-      const text = document.getElementById('promoOutput').value;
-      if (!text) { showToast('Nenhuma promoção gerada.', 'error'); return; }
-      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `promocao_${new Date().toISOString().slice(0,10)}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Arquivo baixado!', 'success');
-    }
-
-    function clearPromo() {
-      document.getElementById('promoOutput').value = '';
-    }
-
-    // ====================================================================
-    // 13. LOGIN / CADASTRO
-    // ====================================================================
-    function doLogin() {
-      const usuario = document.getElementById('username').value.trim();
-      const senha = document.getElementById('password').value.trim();
-      const errDiv = document.getElementById('loginError');
-      if (!usuario || !senha) {
-        errDiv.textContent = 'Preencha todos os campos.';
-        return;
+  window.restoreBackup = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.jogadores || !data.itens) throw new Error('Estrutura inválida.');
+        if (!confirm('Isso sobrescreverá todos os dados atuais. Continuar?')) return;
+        await window.fbSavePlayers(data.jogadores);
+        await window.fbSaveItems(data.itens);
+        showToast('Backup restaurado com sucesso!', 'success');
+        await loadAllData();
+      } catch (err) {
+        showToast('Arquivo inválido.', 'error');
       }
-      errDiv.textContent = 'Verificando...';
-      // Busca no nó registros
-      db.ref('registros').orderByChild('usuario').equalTo(usuario).once('value')
-        .then((snap) => {
-          if (!snap.exists()) {
-            errDiv.textContent = 'Usuário não encontrado.';
-            return;
-          }
-          let userFound = null;
-          let userId = null;
-          snap.forEach((child) => {
-            const val = child.val();
-            if (val.usuario === usuario) {
-              userFound = val;
-              userId = child.key;
-            }
-          });
-          if (!userFound) {
-            errDiv.textContent = 'Usuário não encontrado.';
-            return;
-          }
-          if (userFound.senha !== senha) {
-            errDiv.textContent = 'Senha incorreta.';
-            return;
-          }
-          // Login bem-sucedido
-          errDiv.textContent = '';
-          currentUser = usuario;
-          currentUserId = userId;
-          isAdmin = (userFound.tipo === 'admin');
-          // Escuta mudanças no próprio usuário (para atualizar tipo em tempo real)
-          db.ref('registros/' + userId).on('value', (snap) => {
-            const data = snap.val();
-            if (data) {
-              isAdmin = (data.tipo === 'admin');
-              // Atualiza interface se mudar
-              updateAdminUI();
-              document.getElementById('userDisplay').innerHTML = `Jogador: <strong>${data.usuario || currentUser}</strong>`;
-            }
-          });
-          startApp();
-        })
-        .catch((err) => {
-          errDiv.textContent = 'Erro: ' + err.message;
-        });
-    }
+    };
+    reader.readAsText(file);
+  };
 
-    function doRegister() {
-      const usuario = document.getElementById('username').value.trim();
-      const senha = document.getElementById('password').value.trim();
-      const errDiv = document.getElementById('loginError');
-      if (!usuario || !senha) {
-        errDiv.textContent = 'Preencha todos os campos.';
-        return;
-      }
-      if (senha.length < 6) {
-        errDiv.textContent = 'Senha deve ter pelo menos 6 caracteres.';
-        return;
-      }
-      errDiv.textContent = 'Verificando...';
-      // Verifica se usuário já existe
-      db.ref('registros').orderByChild('usuario').equalTo(usuario).once('value')
-        .then((snap) => {
-          if (snap.exists()) {
-            errDiv.textContent = 'Usuário já existe.';
-            return;
-          }
-          // Verifica nick duplicado (usamos nick = usuario por padrão)
-          // Para simplificar, não validamos nick duplicado a menos que o usuário forneça um campo extra
-          db.ref('registros').push({
-            usuario: usuario,
-            senha: senha,
-            tipo: 'usuario',
-            criadoEm: new Date().toISOString()
-          }).then(() => {
-            errDiv.textContent = '';
-            showToast('Usuário cadastrado! Faça login.', 'success');
-            // Limpa campos
-            document.getElementById('password').value = '';
-          }).catch(err => {
-            errDiv.textContent = 'Erro ao cadastrar: ' + err.message;
-          });
-        })
-        .catch(err => {
-          errDiv.textContent = 'Erro: ' + err.message;
-        });
-    }
-
-    // ====================================================================
-    // 14. INICIALIZAÇÃO DO APP
-    // ====================================================================
-    function startApp() {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('appContainer').style.display = 'block';
-      document.getElementById('userDisplay').innerHTML = `Jogador: <strong>${currentUser}</strong>`;
-      updateAdminUI();
-
-      // Carrega dados em tempo real
-      loadItemsRealtime();
-      loadPlayersRealtime();
-
-      // Atualiza dashboard periodicamente (já atualizado pelos listeners)
-      // Inicializa a calculadora com dados vazios
-      updateAll();
-
-      // Configura listeners dos botões que não estão no HTML onclick
-      document.getElementById('logoutBtn').addEventListener('click', () => {
-        // Desconecta listeners
-        db.ref('itens').off();
-        db.ref('jogadores').off();
-        if (currentUserId) db.ref('registros/' + currentUserId).off();
-        currentUser = null;
-        currentUserId = null;
-        isAdmin = false;
-        document.getElementById('appContainer').style.display = 'none';
-        document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('password').value = '';
-        document.getElementById('loginError').textContent = '';
-      });
-
-      document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
-      document.getElementById('saveEditPlayerBtn').addEventListener('click', saveEditPlayer);
-      document.getElementById('generatePromoBtn').addEventListener('click', generatePromo);
-      document.getElementById('copyPromoBtn').addEventListener('click', copyPromo);
-      document.getElementById('downloadPromoTxtBtn').addEventListener('click', downloadPromoTxt);
-      document.getElementById('clearPromoBtn').addEventListener('click', clearPromo);
-      document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
-      document.getElementById('sidebarLogo').addEventListener('click', () => navigateTo('dashboard'));
-
-      // Navegação pelos itens da sidebar
-      document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-          const page = item.dataset.page;
-          navigateTo(page);
-        });
-      });
-
-      // Busca na calculadora com sugestões
-      setupSearch();
-
-      // Dashboard inicial
-      updateDashboard();
-    }
-
-    function updateAdminUI() {
-      document.querySelectorAll('.adm-only').forEach(el => {
-        el.style.display = isAdmin ? '' : 'none';
-      });
-      // Recarrega lista de jogadores para mostrar/ocultar ações
-      renderPlayers();
-      renderEditItems();
-    }
-
-    function setupSearch() {
-      function handleInput(input, side) {
-        const term = input.value.toLowerCase().trim();
-        const list = side === 'L' ? document.getElementById('suggestL') : document.getElementById('suggestR');
-        if (!term.length) {
-          list.classList.remove('show');
-          return;
-        }
-        const matches = [];
-        for (let i = 0; i < renamedItems.length; i++) {
-          const it = renamedItems[i];
-          if (it.nome.toLowerCase().includes(term)) {
-            matches.push({ index: i, name: it.nome, value: it.valor });
-          }
-          if (matches.length >= 15) break;
-        }
-        list.innerHTML = '';
-        if (!matches.length) { list.classList.remove('show'); return; }
-        matches.forEach(m => {
-          const div = document.createElement('button');
-          div.className = 'suggest-item';
-          div.innerHTML = `${m.name} <span style="color:var(--neon-purple);">${m.value}</span>`;
-          div.onclick = () => {
-            addItem(side, m.index);
-            input.value = '';
-            list.classList.remove('show');
-          };
-          list.appendChild(div);
-        });
-        list.classList.add('show');
-      }
-      document.getElementById('searchInputL').addEventListener('input', (e) => handleInput(e.target, 'L'));
-      document.getElementById('searchInputR').addEventListener('input', (e) => handleInput(e.target, 'R'));
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('.suggest-wrap')) {
-          document.getElementById('suggestL').classList.remove('show');
-          document.getElementById('suggestR').classList.remove('show');
-        }
-      });
-    }
-
-    // ====================================================================
-    // 15. INICIALIZAÇÃO GERAL
-    // ====================================================================
-    document.addEventListener('DOMContentLoaded', () => {
-      // Eventos de login/registro
-      document.getElementById('loginBtn').addEventListener('click', doLogin);
-      document.getElementById('registerBtn').addEventListener('click', doRegister);
-      document.getElementById('password').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') doLogin();
-      });
-
-      // Tenta login automático se houver sessão? Não implementado – sempre pede login.
+  window.copyShareCode = function() {
+    const data = { jogadores: allPlayers, itens: allItems };
+    const json = JSON.stringify(data);
+    const encoded = btoa(unescape(encodeURIComponent(json)));
+    navigator.clipboard.writeText(encoded).then(() => {
+      showToast('Código copiado!', 'success');
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = encoded;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      showToast('Código copiado!', 'success');
     });
+  };
 
-    // ====================================================================
-    // 16. EXPOSIÇÃO GLOBAL PARA ONCLICK NO HTML
-    // ====================================================================
-    window.addItem = addItem;
-    window.removeItem = removeItem;
-    window.clearSide = clearSide;
-    window.addSet = addSet;
-    window.toggleSuggest = toggleSuggest;
-    window.generatePromo = generatePromo;
-    window.copyPromo = copyPromo;
-    window.downloadPromoTxt = downloadPromoTxt;
-    window.clearPromo = clearPromo;
-    window.openEditModal = openEditModal;
-    window.deletePlayer = deletePlayer;
-    window.saveItemValue = saveItemValue;
-    window.resetItemValue = resetItemValue;
-    window.resetAllItems = resetAllItems;
-    window.navigateTo = navigateTo;
-    window.exportFullData = exportFullData;
-    window.importFullData = importFullData;
-    window.exportBackup = exportBackup;
-    window.restoreBackup = restoreBackup;
-    window.copyShareCode = copyShareCode;
-    window.importShareCode = importShareCode;
-    window.clearAllStorage = clearAllStorage;
-    window.closeModal = closeModal;
+  window.importShareCode = async function() {
+    const code = document.getElementById('shareCodeInput').value.trim();
+    if (!code) { showToast('Cole um código válido.', 'error'); return; }
+    try {
+      const json = decodeURIComponent(escape(atob(code)));
+      const data = JSON.parse(json);
+      if (!data.jogadores || !data.itens) throw new Error('Estrutura inválida.');
+      if (!confirm('Isso sobrescreverá os dados atuais. Continuar?')) return;
+      await window.fbSavePlayers(data.jogadores);
+      await window.fbSaveItems(data.itens);
+      showToast('Dados importados do código!', 'success');
+      await loadAllData();
+    } catch (err) {
+      showToast('Código inválido.', 'error');
+    }
+  };
 
-    // ====================================================================
-    // 17. JOGADORES PADRÃO (para seed)
-    // ====================================================================
-    const DEFAULT_PLAYERS = [
-      { name: 'Schneiideer', power: '6.2M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'lucasrc09', power: '6.1M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Biancalazuli019 (mudinho)', power: '5.6M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'Japodealmossah2', power: '5.5M', discord: '', inactive: 'não', participation: 0 },
-      { name: 'darkizin_084', power: '5.13M (Transformado)', discord: '', inactive: 'não', participation: 0 },
-      { name: 'DragonSlayer (ptkrvs123)', power: '5.1M (Transformado)', discord: '', inactive: 'não', participation: 0 },
-      { name: 'yegsjefxjjdhg6353 (Kazuki/russo)', power: '4.5M (Transformado)', discord: '', inactive: 'não', participation: 0 },
-      { name: 'マクドーズ (@Biel)', power: '274k Base / 4M Max', discord: '', inactive: 'não', participation: 0 }
-    ];
-  </script>
+  window.clearAllStorage = function() {
+    if (!isAdmin) { showToast('Apenas administradores.', 'error'); return; }
+    if (!confirm('Limpar todo o localStorage?')) return;
+    localStorage.clear();
+    showToast('LocalStorage limpo.', 'success');
+  };
+</script>
 </body>
 </html>
